@@ -1,0 +1,3 @@
+# Format + lint only what is staged. Fast enough to keep the hook honest —
+# a hook that takes 30s is a hook people bypass with --no-verify.
+pnpm exec lint-staged

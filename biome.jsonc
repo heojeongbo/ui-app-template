@@ -1,0 +1,141 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			// Playwright output: reports, traces, and the signed-in storage state.
+			"!e2e/test-results",
+			"!e2e/playwright-report",
+			"!e2e/blob-report",
+			"!e2e/.auth"
+		]
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": {
+					"level": "on",
+					"options": {
+						"groups": [
+							[":NODE:"],
+							":BLANK_LINE:",
+							[":PACKAGE:"],
+							":BLANK_LINE:",
+							[":ALIAS:"],
+							":BLANK_LINE:",
+							[":PATH:"]
+						]
+					}
+				}
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double"
+		}
+	},
+	"css": {
+		// Tailwind v4 is CSS-first: `@theme`, `@source`, `@custom-variant` and
+		// `@utility` are at-rules the CSS parser rejects without this.
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			// The recommended preset is what turns the whole a11y group on. Keep
+			// it; an individual `biome-ignore lint/a11y/*` needs a comment saying
+			// why. (`"recommended": true` is the deprecated spelling — Biome 2.5
+			// replaced it with `preset` and will drop it in the next major.)
+			"preset": "recommended",
+			"correctness": {
+				"noUnusedImports": "error",
+				// Slice internals marked `@package` in JSDoc stop being importable
+				// from outside the slice — this is how the FSD barrel-only rule is
+				// enforced at the symbol level. `steiger` covers layer direction.
+				"noPrivateImports": "error"
+			},
+			"suspicious": {
+				// The whole reason this template ships a logger. A greenfield repo
+				// has no migration cost, so enforce it from commit one. Overrides
+				// below carve out the only places console is legitimate.
+				"noConsole": "error",
+				"noExplicitAny": "error"
+			},
+			"style": {
+				"noRestrictedImports": {
+					"level": "error",
+					"options": {
+						"paths": {
+							"@heojeongbo/log-palette": "Import the logger from @template/core/logger instead. Keeping log-palette behind one module is what makes swapping it (or adding a remote sink) a single-file change — it is pre-1.0 with no transports of its own.",
+							"lodash": "Use es-toolkit, or a plain language feature.",
+							"lodash-es": "Use es-toolkit, or a plain language feature."
+						}
+					}
+				}
+			},
+			"nursery": {
+				// Canonical class order, enforced from day one so class strings
+				// never turn into merge-conflict surface.
+				"useSortedClasses": {
+					"level": "error",
+					"options": {
+						"functions": ["cn", "cva", "clsx", "tv"]
+					}
+				}
+			}
+		}
+	},
+	"overrides": [
+		{
+			// Generated output — codegen owns the format, so skip lint, format AND
+			// the organizeImports assist (the assist is the one that otherwise
+			// churns the file on every save). protoc-gen-es v2 emits `*_pb.ts`
+			// with an underscore; TanStack Router emits `routeTree.gen.ts`.
+			"includes": [
+				"**/*.gen.ts",
+				"**/*.g.ts",
+				"**/*_pb.ts",
+				"**/proto/**",
+				"**/.intlayer/**"
+			],
+			"linter": { "enabled": false },
+			"formatter": { "enabled": false },
+			"assist": {
+				"actions": {
+					"source": { "organizeImports": "off" }
+				}
+			}
+		},
+		{
+			// The logger module is the one place console is the implementation,
+			// not a mistake. Scripts and config files run in a terminal where
+			// stdout IS the user interface.
+			"includes": [
+				"packages/core/src/logger/**",
+				"scripts/**",
+				"**/scripts/**",
+				"**/*.config.ts",
+				"**/*.config.mts"
+			],
+			"linter": {
+				"rules": {
+					"suspicious": { "noConsole": "off" },
+					"style": { "noRestrictedImports": "off" }
+				}
+			}
+		}
+	]
+}

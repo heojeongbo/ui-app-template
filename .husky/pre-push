@@ -1,0 +1,4 @@
+# The slow checks live here, not in pre-commit: type errors and boundary
+# violations must not reach the remote, but they should not tax every commit.
+pnpm type:check
+pnpm fsd:check

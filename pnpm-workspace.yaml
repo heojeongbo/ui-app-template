@@ -1,0 +1,27 @@
+packages:
+  - apps/*
+  - packages/*
+  - e2e
+
+# esbuild resolves its binary from platform optional deps; its build script is a
+# no-op verification we don't need. pnpm hard-errors on un-acknowledged build
+# scripts, so mark it explicitly to keep CI installs green.
+allowBuilds:
+  esbuild: false
+
+# The TanStack Router trio must move together: `router-plugin` generates
+# `routeTree.gen.ts` against the runtime's types, and a version drift between
+# them corrupts the generated tree in ways that only surface at runtime.
+# Upstream no longer publishes the three in lockstep (latest is 1.170.38 /
+# 1.168.40 / 1.167.2), so this is the newest number all three actually ship.
+# To bump: find the next version present in ALL THREE, not just the router.
+catalog:
+  '@tanstack/react-router': 1.167.2
+  '@tanstack/router-plugin': 1.167.2
+  '@tanstack/react-router-devtools': 1.167.2
+
+  # protobuf-es runtime and its codegen plugin must share a major AND minor —
+  # generated files import from `@bufbuild/protobuf/codegenv2`, whose shape is
+  # versioned with the generator.
+  '@bufbuild/protobuf': 2.15.0
+  '@bufbuild/protoc-gen-es': 2.15.0

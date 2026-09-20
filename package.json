@@ -1,0 +1,41 @@
+{
+	"name": "ui-app-template",
+	"private": true,
+	"type": "module",
+	"packageManager": "pnpm@11.16.0",
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"dev": "pnpm -C apps/web dev",
+		"build": "pnpm -C apps/web build",
+		"preview": "pnpm -C apps/web preview",
+		"lint": "biome lint",
+		"format": "biome format --write",
+		"check": "biome check --write",
+		"type:check": "tsc -b",
+		"fsd:check": "steiger apps/web/src",
+		"test": "pnpm -r --no-bail test",
+		"test:scenario": "pnpm -C apps/web test:scenario",
+		"e2e": "pnpm -C e2e test",
+		"gen:proto": "pnpm -C packages/interfaces gen:proto",
+		"ui:add": "pnpm -C packages/design ui:add",
+		"ui:sync": "pnpm -C packages/design ui:sync",
+		"rename:scope": "node scripts/rename-scope.mjs",
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.14",
+		"@commitlint/cli": "^20.1.0",
+		"@commitlint/config-conventional": "^20.1.0",
+		"@types/node": "^24.3.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
+		"steiger": "^0.6.0",
+		"tsx": "^4.20.4",
+		"typescript": "^7.0.2"
+	},
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx,json,jsonc,css}": "biome check --write --no-errors-on-unmatched"
+	}
+}
