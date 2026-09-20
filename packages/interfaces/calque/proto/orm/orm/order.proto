@@ -1,0 +1,29 @@
+edition = "2023";
+
+package orm;
+
+import "orm/ref.proto";
+
+option features.field_presence = IMPLICIT;
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+enum Order {
+  option allow_alias = true;
+
+  ORDER_UNSPECIFIED = 0;
+
+  ORDER_ASCENDING = 1;
+  ORDER_ASCEND = 1;
+  ORDER_ASC = 1;
+  ORDER_INC = 1;
+
+  ORDER_DESCENDING = 2;
+  ORDER_DESCEND = 2;
+  ORDER_DESC = 2;
+  ORDER_DEC = 2;
+}
+
+message OrderItem {
+  repeated Ref refs = 1;
+  Order order = 2;
+}

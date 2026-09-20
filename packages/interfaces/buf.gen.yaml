@@ -1,0 +1,16 @@
+# One plugin. In connect-es v2 the service descriptors and client types are
+# emitted by protoc-gen-es itself, so `protoc-gen-connect-es` is not needed —
+# it is a v1-era package, stuck at 1.7.0.
+#
+# No `import_extension` option: protoc-gen-es defaults to extensionless
+# imports, which is what a bundler wants. Setting `import_extension=ts` and
+# then stripping the extension in a post-pass (as some setups do) is work that
+# only exists to undo itself.
+version: v2
+inputs:
+  - directory: proto
+plugins:
+  - local: protoc-gen-es
+    out: src/gen
+    opt:
+      - target=ts

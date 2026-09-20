@@ -22,10 +22,13 @@
 		"ui:add": "pnpm -C packages/design ui:add",
 		"ui:sync": "pnpm -C packages/design ui:sync",
 		"rename:scope": "node scripts/rename-scope.mjs",
-		"prepare": "husky"
+		"prepare": "husky",
+		"gen:proto:calque": "pnpm -C packages/interfaces gen:proto:calque"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.14",
+		"@bufbuild/buf": "^1.73.0",
+		"@bufbuild/protoc-gen-es": "^2.15.0",
 		"@commitlint/cli": "^20.1.0",
 		"@commitlint/config-conventional": "^20.1.0",
 		"@types/node": "^24.3.0",

@@ -1,0 +1,17 @@
+edition = "2023";
+
+package orm;
+
+import "google/protobuf/descriptor.proto";
+import "orm/options.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+extend google.protobuf.MessageOptions {
+  MessageOptions message = 45001;
+}
+
+extend google.protobuf.FieldOptions {
+  FieldOptions field = 45101;
+  EdgeOptions edge = 45102;
+}

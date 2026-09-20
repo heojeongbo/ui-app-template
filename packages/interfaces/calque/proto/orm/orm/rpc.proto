@@ -1,0 +1,44 @@
+edition = "2023";
+
+package orm;
+
+import "orm/ref.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+message RpcAdd {
+  bool disabled = 1;
+}
+
+message RpcGet {
+  bool disabled = 1;
+}
+
+message RpcPatch {
+  bool disabled = 1;
+}
+
+message RpcErase {
+  bool disabled = 1;
+}
+
+// RpcList declares the list operation: read the rows the filters match.
+//
+// It is calque's addition -- upstream stops at erase. This tree is calque's
+// published superset of the upstream vocabulary: upstream's numbering is
+// frozen as a subset (a drift test holds it), and a schema that says `list`
+// imports this tree instead of upstream's. `crud` does not enable it: which
+// entities are listable is an API decision a schema states one at a time.
+message RpcList {
+  bool disabled = 1;
+
+  // The edges exposed as filter arms beyond the always-present ref, each
+  // named by both name and number -- the same contract Index.refs holds, so a
+  // rename breaks the declaration loudly. Explicit rather than "every edge":
+  // which relations a listing narrows by is part of the API.
+  repeated Ref filters = 2;
+
+  // 3 is reserved for paging and 4 for ordering; each lands with the consumer
+  // that needs it.
+  reserved 3, 4;
+}

@@ -1,0 +1,10 @@
+version: 1
+
+# Pass 1 of 2. Emits `<entity>_svc.g.proto` — the RPC surface implied by the
+# `rpc: {crud, list}` annotations — next to the entity it derives from, so
+# pass 2 sees it as part of the same module.
+#
+# `service` is "storeless": it describes the API, not how anything is stored,
+# and so takes no backend.
+targets:
+  - {target: service}

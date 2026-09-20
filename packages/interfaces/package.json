@@ -1,0 +1,32 @@
+{
+	"name": "@template/interfaces",
+	"private": true,
+	"type": "module",
+	"version": "0.0.0",
+	"scripts": {
+		"type:check": "tsc --noEmit",
+		"lint": "biome lint",
+		"check": "biome check --write",
+		"gen:proto": "tsx scripts/gen-proto.mts",
+		"lint:proto": "buf lint",
+		"test": "vitest run --passWithNoTests",
+		"gen:proto:calque": "tsx scripts/gen-proto-calque.mts"
+	},
+	"exports": {
+		".": "./src/index.ts",
+		"./*": "./src/*"
+	},
+	"dependencies": {
+		"@bufbuild/protobuf": "^2.15.0",
+		"@connectrpc/connect": "^2.2.0",
+		"@heojeongbo/calque-dexie": "^0.3.0",
+		"dexie": "^4.4.3"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.14",
+		"@types/node": "^24.3.0",
+		"tsx": "^4.20.4",
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.1"
+	}
+}

@@ -1,0 +1,12 @@
+github.com/goccy/go-yaml v1.19.2 h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=
+github.com/goccy/go-yaml v1.19.2/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7LkFRi1kA=
+github.com/heojeongbo/calque v0.7.2 h1:1hTh6c/9BCBolpL6QgELvJmgDp05LgmLjFxHlKwio3g=
+github.com/heojeongbo/calque v0.7.2/go.mod h1:x7NyWi19XuaFDLAOo3vKntXN1Gb6/Hv8yC9vMoOamSI=
+github.com/lesomnus/xli v0.0.0-20260717171524-bf8cac633057 h1:R2XCSr97o/DRfLdUBNM3eYj9CUhTBBXWOYH2y7uP63E=
+github.com/lesomnus/xli v0.0.0-20260717171524-bf8cac633057/go.mod h1:9dZNkM86FqzAsiBYaeT026Nt8PPxAyuq6RtWE4vNxSA=
+github.com/lesomnus/z v0.0.0-20260531102454-3f1853bb4278 h1:dBLfXrOR8qLwZculDy8uJfNN+Q5xlyvM9CF4yylPB/0=
+github.com/lesomnus/z v0.0.0-20260531102454-3f1853bb4278/go.mod h1:v3+tOhGZhT6JQ/ZYncEQryo23ApoN03Ez4G2BHp2SWM=
+golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 h1:1UoZQm6f0P/ZO0w1Ri+f+ifG/gXhegadRdwBIXEFWDo=
+golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67/go.mod h1:qj5a5QZpwLU2NLQudwIN5koi3beDhSAlJwa67PuM98c=
+google.golang.org/protobuf v1.36.11 h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=
+google.golang.org/protobuf v1.36.11/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=

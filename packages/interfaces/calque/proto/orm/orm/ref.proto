@@ -1,0 +1,15 @@
+edition = "2023";
+
+package orm;
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+message Ref {
+  string name = 1 [features.field_presence = IMPLICIT];
+  int32 number = 2 [features.field_presence = IMPLICIT];
+}
+
+// message VirtualBackRef {
+//   string name = 1;
+//   int32 number = 2;
+// }

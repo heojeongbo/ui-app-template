@@ -3,10 +3,14 @@ packages:
   - packages/*
   - e2e
 
-# esbuild resolves its binary from platform optional deps; its build script is a
-# no-op verification we don't need. pnpm hard-errors on un-acknowledged build
-# scripts, so mark it explicitly to keep CI installs green.
+# pnpm hard-errors on un-acknowledged build scripts, so every package with one
+# has to be listed here — including with `false` — or `pnpm install` fails.
 allowBuilds:
+  # Needs its postinstall: it resolves and links the platform-specific `buf`
+  # binary. Without it `pnpm exec buf` is not on PATH and codegen cannot run.
+  '@bufbuild/buf': true
+  # esbuild resolves its binary from platform optional deps instead; its build
+  # script is a no-op verification we don't need.
   esbuild: false
 
 # The TanStack Router trio must move together: `router-plugin` generates

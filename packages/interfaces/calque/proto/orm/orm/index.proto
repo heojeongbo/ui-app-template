@@ -1,0 +1,36 @@
+edition = "2023";
+
+package orm;
+
+import "orm/ref.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+message Index {
+  bool disabled = 1;
+  string name = 2;
+  repeated Ref refs = 3;
+
+  bool unique = 6;
+  bool immutable = 8;
+
+  // If the index is unique and this field is true,
+  // the schema will be written as a unique index,
+  // but it will not be treated as a key in the graph.
+  // In other words, this index will be excluded
+  // from messages like GetRequest.
+  bool hidden = 9;
+
+  // A unique index on an entity that erases softly covers only the rows that
+  // are still there. This says it covers the erased ones as well.
+  //
+  // Off is what almost every unique index wants, which is why it is the
+  // default: a row that is gone should not go on holding the name it had, or
+  // the alias of something erased could never be used again -- and "gone" that
+  // still occupies a name is not gone in the way anybody meant. On is for a
+  // name that is meant to stay taken.
+  //
+  // It says nothing on a non-unique index, or on an entity that has no erased
+  // field, so it is refused on both rather than ignored.
+  bool includes_erased = 10;
+}

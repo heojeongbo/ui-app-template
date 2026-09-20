@@ -1,0 +1,21 @@
+version: 1
+
+# Pass 2 of 2. Needs the service from pass 1 in its input — without it the
+# generated client is syntactically valid and completely empty, which is the
+# confusing failure this two-pass split exists to avoid.
+targets:
+  - {target: ts, backend: dexie}
+
+dexie:
+  # NOT the `orm-ts` default.
+  #
+  # `orm-ts` emits index declarations for shapes IndexedDB cannot actually
+  # resolve, so the generated schema looks richer than the store can honour and
+  # the mismatch surfaces as a query that silently returns nothing. `none`
+  # emits only what Dexie can index.
+  compat: none
+
+ts:
+  # Extensionless, matching what protoc-gen-es emits for Tier 1 and what a
+  # bundler wants.
+  import_extension: ""

@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+// The sample contract. Replace `example.v1` with your own domain — the
+// package name is what becomes the `proto.example.v1.*` namespace in TS.
+//
+// Kept deliberately small but not trivial: it exercises the four things a real
+// schema hits on day one and a toy `Greeting` service does not — an enum, a
+// timestamp, pagination, and a partial update.
+package example.v1;
+
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+service ItemService {
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+  rpc GetItem(GetItemRequest) returns (GetItemResponse);
+  rpc CreateItem(CreateItemRequest) returns (CreateItemResponse);
+  rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse);
+  rpc DeleteItem(DeleteItemRequest) returns (DeleteItemResponse);
+}
+
+enum ItemStatus {
+  // proto3 requires the zero value to be the unset case, and naming it
+  // UNSPECIFIED rather than reusing a real state is what keeps "nobody set
+  // this" distinguishable from "somebody chose the first option".
+  ITEM_STATUS_UNSPECIFIED = 0;
+  ITEM_STATUS_DRAFT = 1;
+  ITEM_STATUS_ACTIVE = 2;
+  ITEM_STATUS_ARCHIVED = 3;
+}
+
+message Item {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  ItemStatus status = 4;
+
+  // Timestamps arrive as `{ seconds: bigint, nanos: number }`, NOT a Date.
+  // `shared/lib/proto/time.ts` owns that conversion; doing it inline is how
+  // two screens end up disagreeing about time zones.
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message ListItemsRequest {
+  // Offset pagination, to match the zod search-param schema the routes use.
+  // Cursor pagination is the better default for large sets; it is left out
+  // because mixing it with URL-addressable pages needs a decision the template
+  // should not make for you.
+  int32 page = 1;
+  int32 page_size = 2;
+
+  // Unset means "every status". An explicit UNSPECIFIED is the same thing —
+  // a filter nobody chose must not silently exclude everything.
+  ItemStatus status = 3;
+  string query = 4;
+}
+
+message ListItemsResponse {
+  repeated Item items = 1;
+  int32 total = 2;
+}
+
+message GetItemRequest {
+  string id = 1;
+}
+
+message GetItemResponse {
+  Item item = 1;
+}
+
+message CreateItemRequest {
+  string name = 1;
+  string description = 2;
+  ItemStatus status = 3;
+}
+
+message CreateItemResponse {
+  // Return the created entity, not just its id. The server normalises values
+  // (trimmed strings, server-assigned timestamps), so seeding the read cache
+  // with the RESPONSE rather than the submitted values is what keeps the list
+  // and the form agreeing — see docs/ux/mutations.md.
+  Item item = 1;
+}
+
+message UpdateItemRequest {
+  string id = 1;
+  Item item = 2;
+
+  // Which fields the client actually means to change. Without a mask, a
+  // partial update is indistinguishable from "set everything else to empty",
+  // and two users editing different fields of the same row clobber each other.
+  google.protobuf.FieldMask update_mask = 3;
+}
+
+message UpdateItemResponse {
+  Item item = 1;
+}
+
+message DeleteItemRequest {
+  string id = 1;
+}
+
+message DeleteItemResponse {}

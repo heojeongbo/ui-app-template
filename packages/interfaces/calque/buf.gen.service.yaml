@@ -1,0 +1,8 @@
+version: v2
+inputs:
+  - directory: proto/schema
+plugins:
+  - local: [go, tool, github.com/heojeongbo/calque]
+    out: proto/schema
+    opt:
+      - config=calque.service.yaml

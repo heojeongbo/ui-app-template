@@ -1,0 +1,77 @@
+edition = "2023";
+
+package orm;
+
+import "orm/ref.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+// Scope says how a row is reached from whatever a read is narrowed by.
+//
+// It is calque's addition -- upstream has no notion of narrowing. What it
+// declares is the *path*: this entity reaches the narrowing basis by these
+// edges. It does not say what the basis is, which rows a caller may see, or
+// where that answer comes from; that is the application's, injected at
+// construction. Splitting it this way is the point. The path is a property of
+// the schema and cannot be got wrong at runtime, and the set is a property of
+// the caller and cannot be known at generation.
+//
+// Declaring it is not optional once anything declares it. A schema where no
+// entity carries `scope` is a schema with no narrowing, and nothing changes
+// for it. But in a schema where one entity does, an entity that says nothing
+// is refused rather than generated wide open -- because the two mistakes are
+// not the same size. A wall that is too tight shows up as an empty screen
+// within minutes. A wall that was never built shows up as one customer
+// reading another's rows, and nothing fails to say so.
+//
+// It is why `none` has to be typed out. An entity that genuinely answers to
+// nobody -- a lookup table, the basis itself -- is a real thing to say, and
+// saying it is one word. Leaving the annotation off would say the same thing
+// with silence, and silence is also what a forgotten entity says.
+message Scope {
+  // The edges to follow to reach the basis, in order.
+  //
+  // One hop for an entity holding the edge itself; more for one that reaches
+  // it through another entity, so `[robot, tenant]` reads as: this row's
+  // robot's tenant. Each is named by both name and number -- the contract
+  // Index.refs and RpcList.filters already hold -- so a rename breaks the
+  // declaration loudly instead of narrowing by something else.
+  //
+  // A field is refused here, exactly as it is in RpcList.filters: narrowing
+  // by a scalar needs words this vocabulary does not have yet -- equality, a
+  // set, an interval. An entity that must be narrowed by a column it holds
+  // rather than an edge it has is not expressible, and saying so is better
+  // than guessing at equality.
+  repeated Ref via = 1;
+
+  // Narrows nothing: every row is in scope for every caller.
+  //
+  // Set with anything else is a contradiction and is refused. Set alone it is
+  // the deliberate opt-out; left alone with nothing else it is the forgotten
+  // one, which is why the annotation cannot be omitted.
+  bool none = 2;
+
+  // This entity is the basis: the set narrows it by its own key rather than
+  // through an edge.
+  //
+  // Every scoped schema has exactly one, and it is the one thing `via` cannot
+  // say -- a path of no hops is not a path, and an entity has no edge to
+  // itself. Whatever the others reach by following edges, this one is.
+  bool basis = 3;
+
+  // This entity is narrowed, but not by anything expressible here, so the
+  // application does it and the generator stays out of the way.
+  //
+  // It generates exactly what `none` generates, which is nothing, and it is a
+  // separate word anyway -- because they are different claims. `none` says
+  // these rows are everybody's. This says these rows are somebody's and the
+  // wall is somewhere else. Somebody auditing the schema has to be able to
+  // tell "public by design" from "go and check", and a comment cannot be
+  // grepped for with the confidence a declaration can.
+  //
+  // The real case it was added for: a tenant held as a JSON column rather than
+  // an edge, narrowed by a JSON-path predicate, and deliberately including the
+  // rows with no tenant at all -- an audit log's failed sign-ins, which belong
+  // to nobody yet and would otherwise be invisible to everybody.
+  bool elsewhere = 4;
+}

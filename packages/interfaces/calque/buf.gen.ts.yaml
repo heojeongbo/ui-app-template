@@ -1,0 +1,19 @@
+version: v2
+inputs:
+  # Both modules. The schema imports `orm.proto`, so protoc-gen-es emits an
+  # import of `orm_pb` for it — and without the vocabulary in the input there
+  # is nothing to resolve that against. Generated but unused at runtime; the
+  # annotations are compile-time only.
+  - directory: proto/schema
+  - directory: proto/orm
+plugins:
+  # The message types. calque's client is typed against these, so both run
+  # over the same input and land in the same tree.
+  - local: protoc-gen-es
+    out: ../src/gen-calque
+    opt:
+      - target=ts
+  - local: [go, tool, github.com/heojeongbo/calque]
+    out: ../src/gen-calque
+    opt:
+      - config=calque.ts.yaml

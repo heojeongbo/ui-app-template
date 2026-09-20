@@ -1,0 +1,54 @@
+// The Tier 2 schema: the same Item, annotated so calque can generate an
+// offline store for it.
+//
+// Kept separate from `proto/example/v1/item.proto` on purpose. That one is the
+// default path and stays free of ORM vocabulary; this whole directory is
+// opt-in and deletable. See ../../../../README.md.
+//
+// `edition = "2023"` and not `proto3`: the orm vocabulary is edition-2023, and
+// an importer has to be at least as new as what it imports.
+edition = "2023";
+
+package example.v1;
+
+import "orm.proto";
+
+// Implicit presence makes scalar fields behave the way proto3 does — no
+// `optional`, no hasser. calque's own fixtures set it, and mixing presence
+// modes across a schema is a source of surprises that has nothing to teach.
+option features.field_presence = IMPLICIT;
+
+// Required by the vocabulary's Go lineage even though nothing here generates
+// Go. Harmless, and omitting it fails the build.
+option go_package = "example.com/example/v1;examplev1";
+
+message Item {
+  // `TYPE_UUID` over a string id: calque stores it as 16 bytes and hands the
+  // TS side a hyphenated string, so the index is compact without the app ever
+  // seeing the byte form.
+  bytes id = 1 [(orm.field) = {
+    type: TYPE_UUID
+    key: true
+    default: ""
+  }];
+
+  // `unique` becomes a real uniqueness constraint in the generated store, not
+  // a comment — a duplicate insert fails locally rather than at the server.
+  string name = 2 [(orm.field) = {
+    unique: true
+    default: ""
+  }];
+
+  string description = 3 [(orm.field) = {default: ""}];
+
+  option (orm.message) = {
+    rpc: {
+      // add / get / patch / erase.
+      crud: true
+      // NOT covered by `crud`. Which entities are listable is an API decision
+      // the schema states one at a time — see RpcList in the vendored
+      // orm/rpc.proto.
+      list: {}
+    }
+  };
+}

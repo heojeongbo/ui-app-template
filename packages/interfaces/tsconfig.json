@@ -1,0 +1,12 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		// The codegen scripts are Node programs, and this package has no DOM
+		// code of its own — generated message types are environment-agnostic.
+		"types": ["node"],
+		"paths": {
+			"@template/interfaces/*": ["./src/*"]
+		}
+	},
+	"include": ["src", "scripts"]
+}

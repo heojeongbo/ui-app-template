@@ -1,0 +1,13 @@
+edition = "2023";
+
+package orm;
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+enum PatchOp {
+  PATCH_OP_UNSPECIFIED = 0;
+
+  PATCH_OP_ADD = 1;
+  PATCH_OP_ERASE = 2;
+  PATCH_OP_CLEAR = 3;
+}

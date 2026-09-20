@@ -1,0 +1,94 @@
+edition = "2023";
+
+package orm;
+
+import "orm/index.proto";
+import "orm/ref.proto";
+import "orm/rpc.proto";
+import "orm/scope.proto";
+import "orm/type.proto";
+
+option go_package = "github.com/protobuf-orm/protobuf-orm/ormpb";
+
+message RpcOptions {
+  bool disabled = 1;
+
+  // Enables add, get, patch, and erase.
+  bool crud = 2;
+
+  RpcAdd add = 16;
+  RpcGet get = 17;
+  RpcPatch patch = 18;
+  RpcErase erase = 19;
+
+  // 20 is calque's, not upstream's; the drift tests hold this number against
+  // a future upstream release claiming it.
+  RpcList list = 20;
+}
+
+message MessageOptions {
+  bool disabled = 1;
+
+  RpcOptions rpc = 2;
+  repeated Index indexes = 3;
+
+  // 20 is calque's, not upstream's, on the same terms as RpcOptions.list: the
+  // drift tests hold the number against a future upstream release claiming
+  // it. It sits beside `rpc` rather than under it because it is not about
+  // which operations exist -- it is about what this entity answers to, which
+  // every read has to honour whether or not the operation was generated.
+  Scope scope = 20;
+}
+
+message FieldOptions {
+  bool disabled = 1;
+
+  Type type = 2;
+
+  bool key = 5;
+  bool unique = 6;
+  bool nullable = 7;
+  bool immutable = 8;
+
+  // TODO: Any?
+  string default = 16;
+  VersionOptions version = 17;
+  ErasedOptions erased = 18;
+}
+
+message EdgeOptions {
+  bool disabled = 1;
+
+  Ref bind = 2;
+  Ref from = 3;
+
+  bool unique = 6;
+  bool nullable = 7;
+  bool immutable = 8;
+
+  // TODO: Any?
+  string default = 16;
+}
+
+message VersionOptions {
+
+}
+
+// ErasedOptions marks the field that says whether a row is still there.
+//
+// It is a time, and it is null for as long as the row is present. Erasing
+// stamps it rather than deleting the row, and every read leaves out the rows
+// that carry one -- so what pointed at the row goes on pointing at something,
+// which is what a delete takes away: an audit trail that names a row nothing
+// answers to any more, a foreign key that has to be cascaded or refused.
+//
+// It is not a field a caller writes. It does not appear in a PatchRequest, for
+// the same reason the key does not: a row is erased by asking to erase it, not
+// by assigning a date to it. The server stamps it, so it must not be immutable
+// either, and it cannot be the key, the version field, or unique.
+//
+// It is implicitly nullable, since being null is how it says the row is there.
+// Saying `nullable: false` beside it is refused rather than quietly ignored.
+message ErasedOptions {
+
+}

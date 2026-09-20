@@ -1,0 +1,16 @@
+# A single module, rooted at this package's own `proto/` directory.
+#
+# Deliberately NOT the `modules:` + `includes:` arrangement you see in repos
+# whose proto trees are symlinks to somewhere else — that complexity exists to
+# work around the layout, not because buf needs it. One in-repo directory needs
+# one module, and it is what makes `pnpm gen:proto` work on a fresh clone with
+# no network and no external checkout.
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
+breaking:
+  use:
+    - FILE
