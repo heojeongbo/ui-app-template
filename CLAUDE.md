@@ -88,6 +88,12 @@ that one module. See [docs/logging.md](docs/logging.md).
 variant, not a `className` at the call site. `ui/primitive/` is CLI-owned and
 never hand-edited. See [docs/design-system.md](docs/design-system.md).
 
+**Colours go in `apps/web/src/app/theme.css`**, never in `packages/design`.
+It is imported last, so it wins on the cascade — and editing the design package
+means a template update conflicts with your palette. Set light AND dark; a
+token defined only for light leaks into dark. A palette that is not known at
+build time goes through `injectThemeTokens()` instead.
+
 **An alias must appear in three places together** — package `exports`, tsconfig
 `paths`, Vite `resolve.alias`. A mismatch resolves in Vite and fails in `tsc`,
 so the dev server stays green while CI goes red.

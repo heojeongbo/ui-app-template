@@ -43,6 +43,7 @@ which optional pieces to keep.
 | **Data** | TanStack Query with one client and a key hierarchy per entity; ConnectRPC over protobuf; an error taxonomy that separates "the server refused" from "the answer was lost" |
 | **Forms** | TanStack Form + zod, with the accessibility wiring derived once and server errors mapped back onto fields |
 | **Design system** | Tailwind v4, oklch tokens, shadcn primitives behind a two-layer ownership split so `shadcn add --overwrite` stays non-destructive |
+| **Theming** | One `theme.css` you own overrides every token for light and dark without touching the design package — plus runtime injection for a palette that arrives per tenant |
 | **Logging** | `@heojeongbo/log-palette` behind one module, with `console` banned by lint |
 | **Testing** | Vitest units, render-free scenario tests, router integration tests, and Playwright against the production bundle |
 | **Guardrails** | Biome, steiger (FSD boundaries), real git hooks, CI that also checks generated trees are current |

@@ -105,9 +105,85 @@ injected block; `style.css` carries a comment marking where it lands.
 If a component needs a token that does **not** exist yet, add it to
 `light.css`, `dark.css` and `inline.css` first.
 
+## Theming: where to put your colours
+
+Two seams, and the first one covers almost everything.
+
+### Build-time — `apps/web/src/app/theme.css`
+
+**This is the file to edit.** It is imported after the design system, so
+anything in it wins on the cascade — no `!important`, no specificity tricks.
+That is what lets you rebrand without touching `packages/design`, so pulling a
+template update never conflicts with your colours.
+
+Every token is listed there, commented out, showing its default, for `:root`
+**and** `.dark`. Uncomment what you want:
+
+```css
+:root { --primary: oklch(0.55 0.22 260); }
+.dark { --primary: oklch(0.75 0.18 260); }
+```
+
+Set **both**. A token you only define for light leaks its light value into dark
+mode.
+
+Plain CSS works there too — it is last, so it wins. A **new** token needs two
+places, not one: the raw variable in `theme.css` (both modes) and a mapping in
+`inline.css`, or `bg-brand` will not compile.
+
+```css
+/* theme.css */   :root { --brand: oklch(0.6 0.2 300); }
+                  .dark { --brand: oklch(0.7 0.18 300); }
+/* inline.css */  @theme inline { --color-brand: var(--brand); }
+```
+
+### Runtime — `injectThemeTokens()`
+
+For a palette that is **not known at build time**: a tenant's brand colours, a
+white-label deployment, a live theme editor.
+
+```ts
+import { injectThemeTokens } from "@template/design/lib/theme";
+
+injectThemeTokens({
+  light: { primary: "oklch(0.55 0.22 260)" },
+  dark:  { primary: "oklch(0.75 0.18 260)" },
+})
+```
+
+`main.tsx` already wires it to `config.js`, so a container can carry a palette
+per deployment with no rebuild:
+
+```js
+window.__APP_CONFIG__ = {
+  theme: { light: { primary: "…" }, dark: { primary: "…" } },
+}
+```
+
+Three things about it worth knowing:
+
+- It writes a **`<style>` element**, not inline styles on `<html>`. Inline
+  styles can only set `:root`, so a dark value would have nowhere to live and
+  dark mode would silently keep the stylesheet's colours.
+- It goes in `<head>` and runs **before** `createRoot`, so the tokens are in
+  place for the first frame. After it, the default palette paints and is then
+  replaced — a visible flash.
+- Keys are **typed**, and an unrecognised one is **reported**, not dropped. A
+  silently ignored colour is indistinguishable from one that was already
+  correct. `main.tsx` logs them.
+
+Use it only for what the build genuinely cannot know. `theme.css` costs nothing
+at runtime.
+
+> One asymmetry to expect in devtools: Tailwind normalises values it processes,
+> so `oklch(0.205 0 0)` in `light.css` computes as `oklch(20.5% 0 0)`.
+> Runtime-injected values are never touched by the build and appear exactly as
+> sent. Both work.
+
 ## Tokens
 
-Four files, so rebranding means editing two of them:
+Four files in the design system, which you edit only when changing what tokens
+*exist* rather than what colour they are:
 
 | File | Holds |
 | --- | --- |

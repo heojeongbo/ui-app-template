@@ -1,10 +1,11 @@
 import { RouterProvider } from "@tanstack/react-router";
-import { env, resolveLogLevel } from "@template/core/config";
+import { env, readRuntimeConfig, resolveLogLevel } from "@template/core/config";
 import {
 	createScopedLogger,
 	exposeLoggingDevtools,
 	initLogging,
 } from "@template/core/logger";
+import { injectThemeTokens } from "@template/design/lib/theme";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -42,6 +43,34 @@ if (import.meta.env.DEV) {
  * app-layer knowledge, and `shared/api` must not reach up for them. It builds
  * lazily on the first real request, which happens long after this line.
  */
+/**
+ * A palette pushed from the server, applied before the first paint.
+ *
+ * Most theming belongs in `src/app/theme.css`, which costs nothing at runtime.
+ * This path is for a palette that is not known at build time — a tenant's
+ * brand colours in a multi-tenant deployment.
+ *
+ * Before `createRoot`, so the tokens are in place when the first frame
+ * renders; after it, the default palette paints and is then replaced, which
+ * reads as a flash.
+ */
+const runtime = readRuntimeConfig();
+if (runtime.error) {
+	createScopedLogger("App").warn("ignoring malformed config.js", {
+		reason: runtime.error,
+	});
+}
+if (runtime.config.theme) {
+	const { unknown } = injectThemeTokens(runtime.config.theme);
+	if (unknown.length > 0) {
+		// A key the design system does not recognise is a colour that silently
+		// does not change — indistinguishable from one that was already right.
+		createScopedLogger("App").warn("unknown theme tokens in config.js", {
+			unknown,
+		});
+	}
+}
+
 const mocksEnabled = env.VITE_ENABLE_MOCKS === true;
 
 if (mocksEnabled) {

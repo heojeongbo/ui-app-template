@@ -104,9 +104,25 @@ every step. [page-triad.md](page-triad.md) explains the rule that makes it hold.
 
 ## 6. Make it look like yours
 
-Two files: `packages/design/src/style/light.css` and `dark.css`. Nothing else
-needs to change — `inline.css` only declares which utilities exist, and every
-component reads the tokens.
+**One file: `apps/web/src/app/theme.css`.** Every token is in there, commented
+out, showing its default, for light and dark both. Uncomment what you want and
+change it:
+
+```css
+:root { --primary: oklch(0.55 0.22 260); }
+.dark { --primary: oklch(0.75 0.18 260); }
+```
+
+It is imported after the design system, so it wins on the cascade — which means
+you never edit `packages/design` and a template update never conflicts with
+your colours. Set both modes; a token defined only for light leaks into dark.
+
+Start with `--primary` and `--primary-foreground`. Those two carry every filled
+button, active nav item and focus accent, and changing them alone already makes
+the app look like a different product.
+
+For a palette that arrives at runtime — a tenant's brand — see
+`injectThemeTokens` in [design-system.md](design-system.md#runtime--injectthemetokens).
 
 Font: set `--font-sans` in `inline.css`'s `@theme` block, and ship the file in
 `apps/web/public/`. Set it on the theme, not on `body`, or the `font-sans`

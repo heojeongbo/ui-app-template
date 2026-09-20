@@ -21,9 +21,25 @@ import { z } from "zod";
  * someone set on purpose for *this* deployment.
  */
 
+/**
+ * A palette pushed from the server — a tenant's brand, a white-label build.
+ *
+ * Deliberately a loose `Record`, not a list of token names: this package has
+ * no business knowing the design system's vocabulary, and hard-coding it here
+ * would mean adding a token in two repos. `injectThemeTokens` validates the
+ * keys and reports the ones it does not recognise.
+ */
+const themeTokensSchema = z.record(z.string(), z.string());
+
 const runtimeConfigSchema = z.object({
 	apiBaseUrl: z.string().optional(),
 	logLevel: z.enum(["debug", "log", "info", "warn", "error"]).optional(),
+	theme: z
+		.object({
+			light: themeTokensSchema.optional(),
+			dark: themeTokensSchema.optional(),
+		})
+		.optional(),
 });
 
 export type RuntimeConfig = z.infer<typeof runtimeConfigSchema>;

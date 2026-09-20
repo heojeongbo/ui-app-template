@@ -1,6 +1,16 @@
 @import "@template/design/style/style.css";
 
 /*
+ * Your palette. LAST on purpose — CSS cascade, so anything in there wins over
+ * the design system's defaults with no `!important` and no specificity tricks.
+ * That is what lets you rebrand without editing `packages/design`, so pulling
+ * a template update never conflicts with your colours.
+ *
+ * Order matters: move this above the import and it stops overriding anything.
+ */
+@import "./theme.css";
+
+/*
  * Tailwind scans the design package from its own stylesheet. This app's source
  * is a separate tree, so it needs its own `@source` — without it, a class used
  * only in `apps/web` is never emitted, and the failure is silent: the element

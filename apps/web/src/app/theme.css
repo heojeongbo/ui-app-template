@@ -1,0 +1,184 @@
+/*
+ * YOUR PALETTE. This is the file to edit.
+ *
+ * It is imported AFTER the design system, so anything set here wins — no
+ * `!important`, no specificity tricks, just the cascade. That is the whole
+ * point: you rebrand the app without touching `packages/design`, so pulling a
+ * template update never conflicts with your colours.
+ *
+ * Everything below is commented out and shows the DEFAULT value, so you can
+ * see what you are changing from. Uncomment what you want and change it.
+ *
+ * ── How the tokens work ────────────────────────────────────────────────────
+ *
+ * `@theme inline` in the design system maps Tailwind's utilities onto these
+ * raw variables — `bg-primary` compiles to `background-color: var(--primary)`.
+ * So redefining `--primary` here recolours every `bg-primary`, `text-primary`
+ * and `border-primary` in the app at once, with no rebuild of the utility.
+ *
+ * ── Light and dark ─────────────────────────────────────────────────────────
+ *
+ * `:root` is light. `.dark` is dark — the class the theme provider puts on
+ * <html>, and the same signal `@custom-variant dark` binds every `dark:`
+ * utility to. Set BOTH, or a token you only defined for light leaks its light
+ * value into dark mode.
+ *
+ * ── Picking values ─────────────────────────────────────────────────────────
+ *
+ * oklch(L C H): lightness 0–1, chroma 0–0.4ish, hue 0–360. It is perceptually
+ * uniform, so holding L constant across a row of tones actually looks like
+ * equal weight — which hex does not. Any CSS colour works here, but mixing
+ * notations makes the palette hard to reason about.
+ *
+ * Every `*-foreground` must be legible ON its partner. If you darken
+ * `--primary`, check `--primary-foreground` still passes contrast.
+ */
+
+:root {
+	/* ── Shape ─────────────────────────────────────────────────────────── */
+	/* --radius: 0.625rem; */
+	/* ── Surfaces ──────────────────────────────────────────────────────── */
+	/* --background: oklch(1 0 0); */
+	/* --foreground: oklch(0.145 0 0); */
+	/* --card: oklch(1 0 0); */
+	/* --card-foreground: oklch(0.145 0 0); */
+	/* --popover: oklch(1 0 0); */
+	/* --popover-foreground: oklch(0.145 0 0); */
+	/* ── Brand ─────────────────────────────────────────────────────────── */
+	/* The two you are most likely to change. `--primary` is every filled
+	   button, active nav item and focus accent. */
+	/* --primary: oklch(0.205 0 0); */
+	/* --primary-foreground: oklch(0.985 0 0); */
+	/* --secondary: oklch(0.97 0 0); */
+	/* --secondary-foreground: oklch(0.205 0 0); */
+	/* --accent: oklch(0.97 0 0); */
+	/* --accent-foreground: oklch(0.205 0 0); */
+	/* --muted: oklch(0.97 0 0); */
+	/* --muted-foreground: oklch(0.556 0 0); */
+	/* ── Lines and focus ───────────────────────────────────────────────── */
+	/* --border: oklch(0.922 0 0); */
+	/* --input: oklch(0.922 0 0); */
+	/* --ring: oklch(0.708 0 0); */
+	/* ── Semantic tones ────────────────────────────────────────────────── */
+	/* Each is a triple: the solid colour, the text that sits on it, and a
+	   tinted surface for backgrounds. Status UI reads from these rather than
+	   from raw palette colours, so "what does a warning look like" has one
+	   answer across every screen. */
+	/* --success: oklch(0.58 0.15 149); */
+	/* --success-foreground: oklch(0.985 0 0); */
+	/* --success-surface: oklch(0.96 0.03 149); */
+	/* --info: oklch(0.58 0.15 250); */
+	/* --info-foreground: oklch(0.985 0 0); */
+	/* --info-surface: oklch(0.96 0.03 250); */
+	/* --warning: oklch(0.72 0.16 75); */
+	/* --warning-foreground: oklch(0.145 0 0); */
+	/* --warning-surface: oklch(0.96 0.05 75); */
+	/* --danger: oklch(0.58 0.22 27); */
+	/* --danger-foreground: oklch(0.985 0 0); */
+	/* --danger-surface: oklch(0.96 0.04 27); */
+	/* `--destructive` is ALIASED to `--danger` in the design system, so
+	   changing `--danger` above changes destructive buttons too. Override
+	   these only if you genuinely want the two to differ. */
+	/* --destructive: var(--danger); */
+	/* --destructive-foreground: var(--danger-foreground); */
+	/* ── Charts ────────────────────────────────────────────────────────── */
+	/* Categorical, so they need to be distinguishable from each other rather
+	   than harmonious with the brand. Keep them far apart in hue. */
+	/* --chart-1: oklch(0.646 0.222 41.116); */
+	/* --chart-2: oklch(0.6 0.118 184.704); */
+	/* --chart-3: oklch(0.398 0.07 227.392); */
+	/* --chart-4: oklch(0.828 0.189 84.429); */
+	/* --chart-5: oklch(0.769 0.188 70.08); */
+	/* ── Sidebar ───────────────────────────────────────────────────────── */
+	/* shadcn's sidebar block reads these. They default to matching `card`, so
+	   the rail sits in the same plane as the content beside it. */
+	/* --sidebar: oklch(0.985 0 0); */
+	/* --sidebar-foreground: oklch(0.145 0 0); */
+	/* --sidebar-primary: oklch(0.205 0 0); */
+	/* --sidebar-primary-foreground: oklch(0.985 0 0); */
+	/* --sidebar-accent: oklch(0.97 0 0); */
+	/* --sidebar-accent-foreground: oklch(0.205 0 0); */
+	/* --sidebar-border: oklch(0.922 0 0); */
+	/* --sidebar-ring: oklch(0.708 0 0); */
+}
+
+.dark {
+	/* Same tokens, dark values. `--radius` is theme-independent and lives in
+	   `:root` only.
+
+	   Tones generally lighten and desaturate against a dark ground, and the
+	   `-surface` variants become dark tints rather than pale washes. */
+	/* ── Surfaces ──────────────────────────────────────────────────────── */
+	/* --background: oklch(0.145 0 0); */
+	/* --foreground: oklch(0.985 0 0); */
+	/* --card: oklch(0.205 0 0); */
+	/* --card-foreground: oklch(0.985 0 0); */
+	/* --popover: oklch(0.205 0 0); */
+	/* --popover-foreground: oklch(0.985 0 0); */
+	/* ── Brand ─────────────────────────────────────────────────────────── */
+	/* --primary: oklch(0.922 0 0); */
+	/* --primary-foreground: oklch(0.205 0 0); */
+	/* --secondary: oklch(0.269 0 0); */
+	/* --secondary-foreground: oklch(0.985 0 0); */
+	/* --accent: oklch(0.269 0 0); */
+	/* --accent-foreground: oklch(0.985 0 0); */
+	/* --muted: oklch(0.269 0 0); */
+	/* --muted-foreground: oklch(0.708 0 0); */
+	/* ── Lines and focus ───────────────────────────────────────────────── */
+	/* Alpha over the surface, not a flat colour: a solid border at this
+	   lightness reads as a seam on a dark card. */
+	/* --border: oklch(1 0 0 / 10%); */
+	/* --input: oklch(1 0 0 / 15%); */
+	/* --ring: oklch(0.556 0 0); */
+	/* ── Semantic tones ────────────────────────────────────────────────── */
+	/* --success: oklch(0.7 0.15 149); */
+	/* --success-foreground: oklch(0.145 0 0); */
+	/* --success-surface: oklch(0.28 0.05 149); */
+	/* --info: oklch(0.7 0.14 250); */
+	/* --info-foreground: oklch(0.145 0 0); */
+	/* --info-surface: oklch(0.28 0.05 250); */
+	/* --warning: oklch(0.8 0.15 75); */
+	/* --warning-foreground: oklch(0.145 0 0); */
+	/* --warning-surface: oklch(0.3 0.06 75); */
+	/* --danger: oklch(0.68 0.2 25); */
+	/* --danger-foreground: oklch(0.145 0 0); */
+	/* --danger-surface: oklch(0.29 0.07 25); */
+	/* ── Charts ────────────────────────────────────────────────────────── */
+	/* --chart-1: oklch(0.488 0.243 264.376); */
+	/* --chart-2: oklch(0.696 0.17 162.48); */
+	/* --chart-3: oklch(0.769 0.188 70.08); */
+	/* --chart-4: oklch(0.627 0.265 303.9); */
+	/* --chart-5: oklch(0.645 0.246 16.439); */
+	/* ── Sidebar ───────────────────────────────────────────────────────── */
+	/* --sidebar: oklch(0.205 0 0); */
+	/* --sidebar-foreground: oklch(0.985 0 0); */
+	/* --sidebar-primary: oklch(0.488 0.243 264.376); */
+	/* --sidebar-primary-foreground: oklch(0.985 0 0); */
+	/* --sidebar-accent: oklch(0.269 0 0); */
+	/* --sidebar-accent-foreground: oklch(0.985 0 0); */
+	/* --sidebar-border: oklch(1 0 0 / 10%); */
+	/* --sidebar-ring: oklch(0.556 0 0); */
+}
+
+/*
+ * ── Anything beyond tokens ──────────────────────────────────────────────────
+ *
+ * Plain CSS also goes here, and also wins, because this file is last.
+ *
+ *   @layer base {
+ *     body { font-feature-settings: "ss01"; }
+ *   }
+ *
+ * A NEW token needs three places, not one — it has to exist as a raw variable
+ * here (both modes) and be mapped to a utility in
+ * `packages/design/src/style/inline.css`, or `bg-brand` will not compile:
+ *
+ *   this file:  :root { --brand: oklch(0.6 0.2 300); }
+ *               .dark { --brand: oklch(0.7 0.18 300); }
+ *   inline.css: @theme inline { --color-brand: var(--brand); }
+ *
+ * A custom FONT is a theme token too, and it belongs in `inline.css` rather
+ * than here — `--font-sans` has to be inside `@theme` for the `font-sans`
+ * utility to resolve to it. Setting it on `body` leaves the utility pointing
+ * at Tailwind's default stack, and the two then disagree.
+ */
