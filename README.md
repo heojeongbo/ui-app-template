@@ -127,4 +127,9 @@ cannot be changed afterwards. See
 
 MIT — see [LICENSE](LICENSE).
 
+Two things in the tree are other people's and carry their own terms: the
+shadcn/ui components (MIT) and the vendored ORM vocabulary (Apache-2.0, via
+calque). Both permissive, neither restricts what you build. See
+[NOTICE.md](NOTICE.md), and `pnpm licenses list` for the dependency tree.
+
 [fsd]: https://feature-sliced.design/

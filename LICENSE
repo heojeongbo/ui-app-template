@@ -22,7 +22,9 @@ SOFTWARE.
 
 ---
 
-The vendored protobuf vocabulary under
-`packages/interfaces/calque/proto/orm/` is not ours. It is calque's published
-copy of the upstream `orm` vocabulary (github.com/heojeongbo/calque, MIT), and
-is carried unmodified — see that directory's README.
+Parts of this repository were written by other people and carry their own
+terms — notably the shadcn/ui components under
+`packages/design/src/ui/primitive/` (MIT) and the ORM vocabulary under
+`packages/interfaces/calque/proto/orm/` (Apache-2.0, via calque).
+
+See NOTICE.md.

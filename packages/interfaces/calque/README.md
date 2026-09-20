@@ -39,6 +39,15 @@ empty `queries` table: valid TypeScript that does nothing. There is no error,
 because from calque's point of view a schema with no service simply has no RPCs.
 That silent-empty result is why the script always runs both.
 
+## Licensing
+
+These vendored files are **Apache-2.0**, not MIT like the rest of this
+repository — they derive from
+[protobuf-orm](https://github.com/protobuf-orm/protobuf-orm), as the
+`go_package` lines still record, and reach here via calque's published
+superset. Deleting this directory removes that obligation entirely. See
+[NOTICE.md](../../../NOTICE.md).
+
 ## Why `proto/orm/` is vendored
 
 `orm.proto` and its imports are calque's published **superset** of
