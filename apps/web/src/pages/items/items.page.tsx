@@ -64,19 +64,38 @@ export function ItemsPage() {
 	// first render and there is no `data === undefined` branch to write.
 	const { data, isFetching } = useSuspenseQuery(itemQueries.list(params));
 
-	const update = (next: ItemsSearch) => {
-		// `replace` so filtering does not fill the back stack with every
-		// keystroke — the back button should leave the screen, not undo a filter
-		// one character at a time.
-		void navigate({ search: next, replace: true });
+	/**
+	 * Navigate by DERIVING from the current search, never from the render's
+	 * closure.
+	 *
+	 * `navigate({ search: fn })` hands `fn` the search as it is right now. The
+	 * obvious alternative — computing the next object up here and passing it —
+	 * reads `search` from the render that created the handler, so two clicks
+	 * before React re-renders both compute from the same stale page. Clicking
+	 * Next twice quickly then lands on page 2 instead of 3, silently skipping
+	 * one. Caught by the journey e2e; isolated tests cannot see it, because
+	 * they never click twice.
+	 *
+	 * `replace` so filtering does not fill the back stack with every keystroke
+	 * — the back button should leave the screen, not undo a filter one
+	 * character at a time.
+	 */
+	const update = (change: (prev: ItemsSearch) => ItemsSearch) => {
+		void navigate({ search: change, replace: true });
 	};
 
 	// S5: a page past the end corrects itself once the total is known.
 	// `correctOverflowPage` returns null when nothing needs to change, which is
 	// what stops this from navigating to where it already is on every render.
 	useEffect(() => {
-		const corrected = correctOverflowPage(search, data.total);
-		if (corrected) void navigate({ search: corrected, replace: true });
+		if (!correctOverflowPage(search, data.total)) return;
+		// Functional here too, for the same reason: between this effect being
+		// scheduled and running, the search may already have moved on.
+		void navigate({
+			search: (prev: ItemsSearch) =>
+				correctOverflowPage(prev, data.total) ?? prev,
+			replace: true,
+		});
 	}, [search, data.total, navigate]);
 
 	const filtering = hasActiveFilters(search);
@@ -98,10 +117,12 @@ export function ItemsPage() {
 				<ItemsFilterBar
 					search={search}
 					onStatusChange={(status: StatusFilter) =>
-						update(applyStatusFilter(search, status))
+						update((prev) => applyStatusFilter(prev, status))
 					}
-					onQueryChange={(value) => update(applyQuery(search, value))}
-					onPageSizeChange={(size) => update(applyPageSize(search, size))}
+					onQueryChange={(value) => update((prev) => applyQuery(prev, value))}
+					onPageSizeChange={(size) =>
+						update((prev) => applyPageSize(prev, size))
+					}
 				/>
 
 				{data.items.length === 0 ? (
@@ -122,7 +143,12 @@ export function ItemsPage() {
 								<Button
 									variant="outline"
 									onClick={() =>
-										update({ ...search, status: "all", q: undefined, page: 1 })
+										update((prev) => ({
+											...prev,
+											status: "all",
+											q: undefined,
+											page: 1,
+										}))
 									}
 								>
 									{itemsContent.clearFilters}
@@ -153,7 +179,12 @@ export function ItemsPage() {
 						<ItemsPager
 							search={search}
 							total={data.total}
-							onPageChange={(page) => update(applyPage(search, page))}
+							// A DIRECTION, not a page number. The pager cannot compute
+							// `page + 1` correctly either — its `search` prop is from the
+							// same stale render.
+							onStep={(delta) =>
+								update((prev) => applyPage(prev, prev.page + delta))
+							}
 						/>
 					</>
 				)}

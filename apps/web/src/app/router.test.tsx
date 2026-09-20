@@ -111,6 +111,31 @@ describe("auth guard", () => {
 		);
 	});
 
+	it("ejects the user from a protected page when the session goes away", async () => {
+		// The regression this locks down: supplying a new router `context` does
+		// NOT re-run `beforeLoad` — those run on navigation, and the current
+		// route stays matched. Signing out therefore left the user sitting on
+		// the protected page with their data on screen until they navigated by
+		// hand. `App` now invalidates the router on every session change.
+		const { router } = mount({ path: "/items", session: SESSION });
+		await waitFor(() => {
+			expect(router.state.location.pathname).toBe("/items");
+		});
+
+		// Exactly what signing out does: drop the session, then invalidate.
+		router.update({
+			context: {
+				queryClient: router.options.context.queryClient,
+				session: null,
+			},
+		});
+		await router.invalidate();
+
+		await waitFor(() => {
+			expect(router.state.location.pathname).toBe("/signin");
+		});
+	});
+
 	it("bounces an already-signed-in user away from sign-in", async () => {
 		const { router } = mount({ path: "/signin", session: SESSION });
 

@@ -6,7 +6,7 @@ import {
 	initLogging,
 } from "@template/core/logger";
 import { injectThemeTokens } from "@template/design/lib/theme";
-import { StrictMode } from "react";
+import { StrictMode, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 
 import { mockInterceptors } from "@/app/mocks";
@@ -93,8 +93,9 @@ if (mocksEnabled) {
 
 configureTransport({
 	onUnauthenticated: () => {
-		// Clearing the session is enough — the router's guard re-runs because the
-		// store changed, and performs the navigation itself.
+		// Clearing the session is enough. `App` watches it and invalidates the
+		// router, which re-runs `beforeLoad` — and the guard performs the
+		// navigation. No imperative `router.navigate` from outside React.
 		sessionStore.signOut();
 	},
 	interceptors: mocksEnabled ? mockInterceptors : [],
@@ -104,9 +105,47 @@ const router = createAppRouter(queryClient);
 
 function App() {
 	// Read here rather than inside a provider: the router context is what
-	// guards depend on, and re-supplying it is what makes signing in or out
-	// re-run every `beforeLoad` without rebuilding the router.
+	// guards depend on, and it is re-supplied on every session change.
 	const session = useSessionStore((s) => s.session);
+
+	/**
+	 * Re-run the guards when the session changes.
+	 *
+	 * Supplying a new `context` re-renders, but it does **not** re-run
+	 * `beforeLoad` — those run on navigation, and the current route stays
+	 * matched. Without this, signing out leaves the user sitting on the
+	 * protected page with their data still on screen, and only a manual
+	 * navigation ejects them. Caught by the journey e2e; every isolated test
+	 * signs in and never signs out, so none of them could see it.
+	 *
+	 * `invalidate()` re-runs `beforeLoad` and the loaders for the current
+	 * matches. On sign-out the guard throws its redirect; on sign-in the
+	 * loaders refetch what the user is now entitled to.
+	 *
+	 * It MUST be an effect on `session`, not a store subscription. A zustand
+	 * listener fires synchronously inside `set()`, before React re-renders —
+	 * so `RouterProvider` has not yet pushed the new context, and `invalidate`
+	 * re-runs the guard against the session that is on its way out. The guard
+	 * passes, and nothing happens. Tried it; the journey test caught it.
+	 */
+	const mounted = useRef(false);
+
+	// The lint below is correct that `session` is never read in the body, and
+	// wrong that it is therefore unnecessary: it is a SEQUENCING requirement.
+	// The effect has to run after the render that hands the new session to
+	// RouterProvider, and with an empty array it would fire once and never
+	// again. (A `biome-ignore` reason has to fit on its own line, hence this
+	// note sitting above it.)
+	// biome-ignore lint/correctness/useExhaustiveDependencies: sequencing, not a read — see above
+	useEffect(() => {
+		// Skip the mount run: the initial render already evaluated the guards,
+		// and invalidating here would refetch every loader before first paint.
+		if (!mounted.current) {
+			mounted.current = true;
+			return;
+		}
+		void router.invalidate();
+	}, [session]);
 
 	return <RouterProvider router={router} context={{ session }} />;
 }

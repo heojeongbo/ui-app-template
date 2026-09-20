@@ -14,11 +14,16 @@ import { type ItemsSearch, visibleRange } from "./items.filters";
 export function ItemsPager({
 	search,
 	total,
-	onPageChange,
+	onStep,
 }: {
 	search: ItemsSearch;
 	total: number;
-	onPageChange: (page: number) => void;
+	/**
+	 * A direction, not a target page. The pager's `search` prop belongs to the
+	 * render that produced it, so `page + 1` computed here is stale the moment
+	 * a second click arrives before React re-renders.
+	 */
+	onStep: (delta: -1 | 1) => void;
 }) {
 	const { from, to } = visibleRange(search, total);
 	const lastPage = Math.max(1, Math.ceil(total / search.pageSize));
@@ -40,7 +45,7 @@ export function ItemsPager({
 					variant="outline"
 					size="sm"
 					disabled={search.page <= 1}
-					onClick={() => onPageChange(search.page - 1)}
+					onClick={() => onStep(-1)}
 				>
 					<ChevronLeftIcon aria-hidden="true" />
 					{itemsContent.previous}
@@ -49,7 +54,7 @@ export function ItemsPager({
 					variant="outline"
 					size="sm"
 					disabled={search.page >= lastPage}
-					onClick={() => onPageChange(search.page + 1)}
+					onClick={() => onStep(1)}
 				>
 					{itemsContent.next}
 					<ChevronRightIcon aria-hidden="true" />

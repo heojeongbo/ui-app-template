@@ -8,6 +8,7 @@ Four levels. Each catches something the others cannot.
 | Scenario | `pnpm test:scenario` | Screen decisions, without rendering |
 | Integration | `pnpm test` | The router, guards, loaders, the whole data chain |
 | End-to-end | `pnpm e2e` | The real bundle, real CSS, real focus and keyboard |
+| Journey | `pnpm e2e` | What only breaks when steps **compose** |
 
 ## Unit
 
@@ -63,6 +64,49 @@ pnpm -C e2e install-browsers   # once per machine
 pnpm e2e
 pnpm -C e2e test:ui            # pick through failures
 ```
+
+## The journey
+
+`e2e/tests/journey.spec.ts` is one test that walks the whole app in a single
+session — arrive signed out, get bounced, sign in, browse, page, create, edit,
+delete, undo, switch theme, reload, sign out.
+
+Every other spec proves one behaviour with a fresh page and a fresh sign-in.
+This one exists for the class of bug that is invisible to that, because it only
+appears when **state accumulates**: a toast still on screen intercepting a
+later click, a cached count drifting after create-then-filter-then-delete, a
+session that survives navigation but not a reload.
+
+It found two real defects on its first run, and both were fixes to the app:
+
+- **Clicking Next twice quickly skipped a page.** The second click computed
+  `search.page + 1` from the closure of a render that had not updated yet.
+  Navigation now derives from `prev` (`navigate({ search: (prev) => … })`), and
+  the pager signals a *direction* rather than a target page.
+- **Signing out left the user on the protected page.** Supplying a new router
+  `context` re-renders but does **not** re-run `beforeLoad` — those run on
+  navigation, and the matched route stays matched. `App` now invalidates the
+  router on every session change.
+
+Deliberately one test rather than a chain: Playwright gives no ordering
+guarantee between tests, so splitting it would either reintroduce the isolation
+it exists to escape or depend on an order that is not promised. Each step is a
+named `test.step`, so a failure reports which part of the journey broke.
+
+## Cold start
+
+The other "end to end": does a fresh clone work?
+
+```sh
+git clone <repo> && cd <repo>
+pnpm install
+pnpm type:check && pnpm test && pnpm build
+pnpm -C e2e install-browsers && pnpm e2e
+```
+
+Verified from an actual clone of the remote: everything passes with **no
+codegen, no buf and no Go**, because both generated trees are committed. CI
+runs the same path on every pull request, which is what stops it rotting.
 
 ## What CI gates
 
