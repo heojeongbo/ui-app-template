@@ -14,6 +14,7 @@ import { queryClient } from "@/app/providers/query-client";
 import { createAppRouter } from "@/app/router";
 import { sessionStore, useSessionStore } from "@/entities/session";
 import { configureTransport } from "@/shared/api";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { Toaster } from "@/shared/ui/toaster";
 
 import "@/app/style.css";
@@ -93,11 +94,14 @@ createRoot(rootElement).render(
 		<AppProviders>
 			<App />
 			{/*
-				Sibling of the router, not inside it: a toast has to survive the
-				navigation that triggered it. Mounted once — a second Toaster
-				renders every toast twice.
+				Siblings of the router, not inside it: a toast has to survive the
+				navigation that triggered it, and a confirmation has to outlive the
+				component that asked for it. Both mounted exactly once — a second
+				Toaster renders every toast twice, and a second ConfirmDialog would
+				answer the same promise twice.
 			*/}
 			<Toaster />
+			<ConfirmDialog />
 		</AppProviders>
 	</StrictMode>,
 );

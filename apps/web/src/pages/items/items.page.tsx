@@ -1,14 +1,16 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { Button } from "@template/design/ui/button";
+import type { proto } from "@template/interfaces";
 import { BoxIcon, PlusIcon } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
 	itemQueries,
 	type StatusFilter,
 	statusFromFilter,
 } from "@/entities/item";
+import { ItemEditorDialog } from "@/features/item-editor";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
 
@@ -25,6 +27,7 @@ import {
 } from "./items.filters";
 import { ItemsPager } from "./items.pager";
 import { ItemsTable } from "./items.table";
+import { useItemActions } from "./use-item-actions";
 
 const route = getRouteApi("/(auth)/(shell)/items/");
 
@@ -41,6 +44,13 @@ const route = getRouteApi("/(auth)/(shell)/items/");
 export function ItemsPage() {
 	const search = route.useSearch();
 	const navigate = route.useNavigate();
+
+	// `undefined` = closed, `null` = create, an item = edit. One state instead
+	// of an `open` boolean plus a `mode` plus a `selected`, which can disagree.
+	const [editing, setEditing] = useState<
+		proto.example_v1.Item | null | undefined
+	>(undefined);
+	const { pendingId, remove } = useItemActions();
 
 	const params = {
 		page: search.page,
@@ -77,7 +87,7 @@ export function ItemsPage() {
 				title={itemsContent.title}
 				description={itemsContent.description}
 				actions={
-					<Button>
+					<Button onClick={() => setEditing(null)}>
 						<PlusIcon aria-hidden="true" />
 						{itemsContent.create}
 					</Button>
@@ -118,7 +128,7 @@ export function ItemsPage() {
 									{itemsContent.clearFilters}
 								</Button>
 							) : (
-								<Button>
+								<Button onClick={() => setEditing(null)}>
 									<PlusIcon aria-hidden="true" />
 									{itemsContent.create}
 								</Button>
@@ -133,7 +143,13 @@ export function ItemsPage() {
 							suspense-pending case is what distinguishes "refreshing what
 							you can see" from "loading for the first time".
 						*/}
-						<ItemsTable items={data.items} refreshing={isFetching} />
+						<ItemsTable
+							items={data.items}
+							refreshing={isFetching}
+							pendingId={pendingId}
+							onEdit={setEditing}
+							onDelete={remove}
+						/>
 						<ItemsPager
 							search={search}
 							total={data.total}
@@ -142,6 +158,22 @@ export function ItemsPage() {
 					</>
 				)}
 			</div>
+
+			{/*
+				Mounted only while open, and keyed on the item: a dialog that stays
+				mounted keeps the previous row's form state, so opening a second
+				row shows the first one's values for a frame.
+			*/}
+			{editing !== undefined ? (
+				<ItemEditorDialog
+					key={editing?.id ?? "new"}
+					open
+					onOpenChange={(next) => {
+						if (!next) setEditing(undefined);
+					}}
+					item={editing ?? undefined}
+				/>
+			) : null}
 		</div>
 	);
 }

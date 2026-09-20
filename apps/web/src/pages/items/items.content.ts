@@ -15,6 +15,7 @@ export const itemsContent = {
 	create: "New item",
 	edit: "Edit",
 	delete: "Delete",
+	rowActions: (name: string) => `Actions for ${name}`,
 
 	searchPlaceholder: "Search items",
 	statusLabel: "Status",
@@ -48,7 +49,11 @@ export const itemsContent = {
 	updated: (name: string) => `Updated “${name}”.`,
 	deleted: (name: string) => `Deleted “${name}”.`,
 	undo: "Undo",
-	restored: (name: string) => `Restored “${name}”.`,
+	// Says what actually happened. The undo recreates rather than restores, so
+	// the row comes back with a new id — claiming "restored" would be a lie the
+	// user only discovers when an old link 404s.
+	restored: (name: string) => `Re-created “${name}” with a new id.`,
+	restoreFailed: "Could not put the item back.",
 
 	createFailed: "Could not create the item.",
 	updateFailed: "Could not update the item.",

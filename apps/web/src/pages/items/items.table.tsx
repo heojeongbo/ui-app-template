@@ -14,6 +14,7 @@ import type { proto } from "@template/interfaces";
 import { statusKey, statusTone } from "@/entities/item";
 
 import { itemsContent } from "./items.content";
+import { ItemRowActions } from "./items.row-actions";
 
 const TONE_VARIANT = {
 	success: "default",
@@ -31,9 +32,15 @@ const TONE_VARIANT = {
 export function ItemsTable({
 	items,
 	refreshing,
+	pendingId,
+	onEdit,
+	onDelete,
 }: {
 	items: readonly proto.example_v1.Item[];
 	refreshing: boolean;
+	pendingId: string | null;
+	onEdit: (item: proto.example_v1.Item) => void;
+	onDelete: (item: proto.example_v1.Item) => void;
 }) {
 	return (
 		<div
@@ -52,6 +59,7 @@ export function ItemsTable({
 						<TableHead>Status</TableHead>
 						<TableHead>Description</TableHead>
 						<TableHead>Created</TableHead>
+						<TableHead className="w-24 text-right">Actions</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -77,6 +85,14 @@ export function ItemsTable({
 								*/}
 								<TableCell className="font-mono text-muted-foreground text-xs">
 									{created ? created.toISOString().slice(0, 10) : "—"}
+								</TableCell>
+								<TableCell>
+									<ItemRowActions
+										item={item}
+										pendingId={pendingId}
+										onEdit={onEdit}
+										onDelete={onDelete}
+									/>
 								</TableCell>
 							</TableRow>
 						);
