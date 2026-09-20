@@ -1,0 +1,52 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@import "./inline.css";
+@import "./light.css";
+@import "./dark.css";
+
+/*
+ * Without this, `dark:` utilities compile to `@media (prefers-color-scheme: dark)`
+ * while the tokens below switch on the `.dark` class. A user on a light OS who
+ * toggles the app to dark then gets dark tokens and light `dark:` overrides —
+ * a real, silent desync. This binds both halves to the same signal.
+ */
+@custom-variant dark (&:is(.dark *));
+
+/* Tailwind scans this package's own source. Each consuming app adds its own
+   `@source` for its `src/` — see apps/web/src/app/style.css. Paths are relative
+   to THIS file, so moving it breaks scanning with no error, only missing
+   classes at runtime. */
+@source "../";
+
+@layer base {
+	* {
+		border-color: var(--color-border);
+		outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
+	}
+
+	body {
+		margin: 0;
+		background-color: var(--color-background);
+		color: var(--color-foreground);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* Digits must not jitter as live values tick. Global rather than per
+	   component, because every number rendered in a mono face is a value. */
+	.font-mono {
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+/*
+ * `shadcn add <component>` appends the component's own `cssVars` block to the
+ * BOTTOM of this file — after the imports above, so it overrides the oklch
+ * definitions in light.css / dark.css and pulls the component off-palette.
+ * (`sidebar` is the usual offender; its focus ring arrives blue.)
+ *
+ * The tokens it wants are already defined. Delete the injected block; it lands
+ * right here. If a component needs a token that does NOT exist yet, add it to
+ * light.css, dark.css and inline.css instead.
+ */

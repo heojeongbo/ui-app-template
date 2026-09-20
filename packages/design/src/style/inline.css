@@ -1,0 +1,84 @@
+/*
+ * The token → utility bridge. `@theme inline` maps Tailwind's `--color-*` names
+ * onto the raw `--*` variables that light.css / dark.css flip, which is what
+ * lets one palette swap recolour the whole app.
+ *
+ * `inline` (not a bare `@theme`) is what shadcn's Tailwind v4 docs prescribe:
+ * it resolves the var at use-site instead of emitting a second layer of custom
+ * properties into `:root`, so the `.dark` override actually wins.
+ *
+ * Rebranding this template = editing light.css and dark.css. This file only
+ * declares which utilities exist, not what colour they are.
+ */
+@theme inline {
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+
+	/* Set on the theme, not on `body`. A `body { font-family }` rule leaves the
+	   `font-sans` utility resolving to Tailwind's default stack — the two then
+	   disagree wherever the utility is used explicitly. */
+	--font-sans:
+		ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+		"Helvetica Neue", Arial, sans-serif;
+	--font-mono:
+		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		monospace;
+
+	/* --- shadcn's baseline contract -------------------------------------- */
+	/* A freshly installed primitive only renders correctly if every name below
+	   exists. Do not remove one without checking `rg` first. */
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+
+	/* --- semantic tones ---------------------------------------------------- */
+	/* Four tones, each a triple: the solid colour, the text that sits on it,
+	   and a tinted surface for backgrounds. Status UI reads from these rather
+	   than from raw palette colours, so "what does a warning look like" has one
+	   answer across every screen. `--destructive` is aliased to `--danger` in
+	   light.css: the colour of a destructive action and the colour of a failure
+	   are one thing, and two literals drift the first time either is tuned. */
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-success-surface: var(--success-surface);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-info-surface: var(--info-surface);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-warning-surface: var(--warning-surface);
+	--color-danger: var(--danger);
+	--color-danger-foreground: var(--danger-foreground);
+	--color-danger-surface: var(--danger-surface);
+}

@@ -13,7 +13,7 @@
 		"lint": "biome lint",
 		"format": "biome format --write",
 		"check": "biome check --write",
-		"type:check": "tsc -b",
+		"type:check": "pnpm -r type:check",
 		"fsd:check": "steiger apps/web/src",
 		"test": "pnpm -r --no-bail test",
 		"test:scenario": "pnpm -C apps/web test:scenario",

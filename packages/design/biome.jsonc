@@ -1,0 +1,20 @@
+{
+	"$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
+	"extends": "//",
+	"root": false,
+	"overrides": [
+		{
+			// `src/ui/primitive/` is shadcn CLI output — the same category as the
+			// generated files the root config already skips. Linting it means
+			// hand-fixing findings that the next `shadcn add --overwrite` throws
+			// away, and they are upstream's to make anyway.
+			//
+			// Formatting stays ON: shadcn emits spaces and single quotes, the
+			// workspace is tabs and double quotes, and that is a mechanical
+			// rewrite the CLI has no opinion about — so it costs nothing on
+			// re-install and keeps diffs readable.
+			"includes": ["src/ui/primitive/**"],
+			"linter": { "enabled": false }
+		}
+	]
+}

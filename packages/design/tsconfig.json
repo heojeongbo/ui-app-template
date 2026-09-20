@@ -1,0 +1,18 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"types": ["vite/client"],
+		// The design package imports itself by its public specifier — the same
+		// one consumers use — so a path that works here works there. Generated
+		// shadcn components also carry `@template/design/lib/utils` (our
+		// `add-ui` step rewrites the CLI's bare `cn` import), and this is what
+		// makes it resolve.
+		//
+		// No `baseUrl`: TypeScript 7 removed it. `paths` now resolve relative to
+		// this file, which is what the "./src/*" below already assumed.
+		"paths": {
+			"@template/design/*": ["./src/*"]
+		}
+	},
+	"include": ["src", "scripts", "vite.config.ts"]
+}

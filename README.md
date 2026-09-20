@@ -35,7 +35,7 @@ docs/              the conventions this template encodes
 | `pnpm build` | Production build |
 | `pnpm check` | Biome — format + lint, with fixes |
 | `pnpm lint` | Biome, read-only |
-| `pnpm type:check` | `tsc -b` across every package |
+| `pnpm type:check` | `tsc --noEmit` in every package |
 | `pnpm fsd:check` | Steiger — FSD layer boundaries |
 | `pnpm test` | Vitest |
 | `pnpm test:scenario` | Scenario tests only |
