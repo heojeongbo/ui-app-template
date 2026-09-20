@@ -120,11 +120,15 @@
 			}
 		},
 		{
-			// The logger module is the one place console is the implementation,
-			// not a mistake. Scripts and config files run in a terminal where
-			// stdout IS the user interface.
+			// Scripts and config files run in a terminal where stdout IS the user
+			// interface.
+			//
+			// The other legitimate use of console — the logger module itself — is
+			// carved out in `packages/core/biome.jsonc`, NOT here: a nested config
+			// resolves the root's override globs relative to its own directory, so
+			// a root-anchored path like `packages/core/src/**` silently matches
+			// nothing once that package has a config of its own.
 			"includes": [
-				"packages/core/src/logger/**",
 				"scripts/**",
 				"**/scripts/**",
 				"**/*.config.ts",

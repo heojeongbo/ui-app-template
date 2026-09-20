@@ -1,0 +1,23 @@
+{
+	"$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
+	"extends": "//",
+	"root": false,
+	"overrides": [
+		{
+			// The one place `console` is the implementation rather than a mistake,
+			// and the one place `@heojeongbo/log-palette` may be imported — the
+			// root config bans both everywhere else, which is what makes the
+			// logger a real seam instead of a suggestion.
+			//
+			// Globs in a nested config are relative to THIS directory, not the
+			// workspace root. That is why the carve-out lives here.
+			"includes": ["src/logger/**"],
+			"linter": {
+				"rules": {
+					"suspicious": { "noConsole": "off" },
+					"style": { "noRestrictedImports": "off" }
+				}
+			}
+		}
+	]
+}

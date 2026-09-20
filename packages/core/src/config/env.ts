@@ -1,0 +1,77 @@
+import { z } from "zod";
+
+/**
+ * Typed, validated environment — parsed once, at module load.
+ *
+ * Reading `import.meta.env.VITE_X` raw at the point of use has two failure
+ * modes this replaces:
+ *
+ * - A typo'd or missing variable is `undefined`, and the app boots and then
+ *   fails somewhere far away ("Cannot read properties of undefined"). Parsing
+ *   at load turns that into one legible error at startup.
+ * - Everything is `string | undefined`, so every call site re-does its own
+ *   coercion, and two of them disagree about what `"false"` means.
+ *
+ * Note that `import.meta.env.VITE_*` is **inlined at build time**. A value
+ * that must differ per deployment of the same image cannot come from here —
+ * see `runtime-config.ts`.
+ */
+
+const LOG_LEVELS = ["debug", "log", "info", "warn", "error"] as const;
+
+/**
+ * `z.stringbool()` and not `z.coerce.boolean()`. The latter applies JavaScript
+ * truthiness, under which `"false"` and `"0"` are both `true` — a footgun that
+ * reliably ships a debug flag enabled in production.
+ */
+const booleanFlag = z.stringbool().optional();
+
+const envSchema = z.object({
+	/** Where RPCs go. Same-origin by default so the session cookie flows. */
+	VITE_API_BASE_URL: z.string().default("/api"),
+
+	VITE_API_PROTOCOL: z.enum(["connect", "grpc-web"]).default("connect"),
+
+	/**
+	 * Optional so a dev build does not have to set it. The default is decided
+	 * by `resolveLogLevel` below, which needs to know about PROD.
+	 */
+	VITE_LOG_LEVEL: z.enum(LOG_LEVELS).optional(),
+
+	/** Turns on the dev-only RPC mocks. Off unless explicitly set. */
+	VITE_ENABLE_MOCKS: booleanFlag,
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+function parseEnv(raw: unknown): Env {
+	const result = envSchema.safeParse(raw);
+
+	if (!result.success) {
+		const problems = result.error.issues
+			.map((issue) => `  ${issue.path.join(".")}: ${issue.message}`)
+			.join("\n");
+		// Thrown at import time on purpose. An app that boots with bad config and
+		// fails later is far harder to diagnose than one that refuses to start.
+		throw new Error(`Invalid environment configuration:\n${problems}`);
+	}
+
+	return result.data;
+}
+
+export const env: Env = parseEnv(import.meta.env);
+
+/**
+ * The log level to boot with.
+ *
+ * `warn` in production rather than silence: `error` and `warn` are the only
+ * signal a support engineer gets from a user's console, and turning them off
+ * is a decision that cannot be undone from the field.
+ */
+export function resolveLogLevel(): (typeof LOG_LEVELS)[number] {
+	if (env.VITE_LOG_LEVEL) return env.VITE_LOG_LEVEL;
+	return import.meta.env.PROD ? "warn" : "debug";
+}
+
+/** Exported for tests, which need to parse a fixture rather than the real env. */
+export const __testing = { parseEnv, envSchema };
