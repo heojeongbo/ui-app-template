@@ -63,9 +63,14 @@ describe("field accessibility", () => {
 				<TestForm />
 			</>,
 		);
-		const [first, second] = screen.getAllByLabelText("Email");
-		expect(first.id).not.toBe("");
-		expect(first.id).not.toBe(second.id);
+		const controls = screen.getAllByLabelText("Email");
+		// Asserted before the ids are compared, because `getAllByLabelText`
+		// returning one element would otherwise make the inequality below pass
+		// against `undefined` and report a duplicate-id bug as a pass.
+		expect(controls).toHaveLength(2);
+		const [first, second] = controls;
+		expect(first?.id).not.toBe("");
+		expect(first?.id).not.toBe(second?.id);
 	});
 
 	it("omits aria-invalid entirely while the field is valid", () => {

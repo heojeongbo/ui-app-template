@@ -23,21 +23,27 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 4173;
 
+// Read once, through a bracket because `process.env` is an index signature.
+// The five settings below all key off the same question, and naming it is what
+// stops a typo'd `process.env.C1` from silently reading `undefined` — which
+// would turn CI's retries and serial workers off with nothing to notice.
+const isCI = !!process.env["CI"];
+
 export default defineConfig({
 	testDir: "./tests",
 
 	// A failing assertion inside a `.only` left behind in a commit is the
 	// classic way a suite silently stops covering anything.
-	forbidOnly: !!process.env.CI,
+	forbidOnly: isCI,
 
 	// Retry in CI only. Locally a retry hides a flake you were about to fix;
 	// in CI it stops one network blip from failing a merge.
-	retries: process.env.CI ? 2 : 0,
+	retries: isCI ? 2 : 0,
 
 	// Serial in CI for reproducible timing, parallel locally for speed.
-	workers: process.env.CI ? 1 : undefined,
+	workers: isCI ? 1 : undefined,
 
-	reporter: process.env.CI
+	reporter: isCI
 		? [["github"], ["html", { open: "never" }]]
 		: [["list"], ["html", { open: "never" }]],
 
@@ -55,7 +61,7 @@ export default defineConfig({
 		// `vite preview` serves the real build output.
 		command: `pnpm -C ../apps/web build && pnpm -C ../apps/web preview --port ${PORT}`,
 		port: PORT,
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: !isCI,
 		timeout: 120_000,
 		env: {
 			// Without this the app talks to /api and every test fails on a

@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
 	// virtual modules do not resolve under the test runner — it fails with
 	// "Cannot set properties of undefined (setting 'tsr-split-component:component')".
 	// Splitting is a build concern; tests have no use for it.
-	const isTest = !!process.env.VITEST;
+	const isTest = !!process.env["VITEST"];
 
 	return {
 		plugins: [
@@ -46,10 +46,13 @@ export default defineConfig(({ mode }) => {
 			// Same-origin `/api` so the session cookie flows without CORS. The
 			// transport's default baseUrl matches, so nothing has to be configured
 			// twice.
-			proxy: env.VITE_API_PROXY_TARGET
+			// Bracket access: `loadEnv` returns a plain `Record<string, string>`,
+			// so every key here is permitted rather than declared — and a typo
+			// would read `undefined` and silently drop the proxy.
+			proxy: env["VITE_API_PROXY_TARGET"]
 				? {
 						"/api": {
-							target: env.VITE_API_PROXY_TARGET,
+							target: env["VITE_API_PROXY_TARGET"],
 							changeOrigin: true,
 							ws: true,
 							cookieDomainRewrite: "",

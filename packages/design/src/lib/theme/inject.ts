@@ -73,7 +73,8 @@ export function injectThemeTokens(override: ThemeOverride): InjectResult {
 	if (!element) {
 		element = document.createElement("style");
 		element.id = ELEMENT_ID;
-		element.dataset.themeOverride = "";
+		// `dataset` is a `DOMStringMap` — an index signature, so bracket access.
+		element.dataset["themeOverride"] = "";
 		// `head` and not `body`: a stylesheet in the body is valid but applies
 		// after first paint, which shows up as a flash of the default palette.
 		document.head.append(element);

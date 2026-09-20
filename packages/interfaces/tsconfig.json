@@ -4,6 +4,27 @@
 		// The codegen scripts are Node programs, and this package has no DOM
 		// code of its own — generated message types are environment-agnostic.
 		"types": ["node"],
+
+		// Two strictness flags from tsconfig.base.json are relaxed HERE and
+		// only here, because 17 of this package's 18 source files are codegen
+		// output. The rule is: a flag constrains code you write, and this
+		// package is code a generator writes.
+		//
+		// Both are satisfiable only by editing generated files, which the next
+		// `pnpm gen:proto` would overwrite — calque's `*.db.g.ts` overrides
+		// `TableBase` members without the modifier and reaches through
+		// protobuf's index signature.
+		//
+		// This works where `erasableSyntaxOnly` could not (see the note in
+		// tsconfig.base.json) because nothing outside this package imports the
+		// calque tree: `apps/web` uses the Tier-1 client, so the consumer
+		// never re-checks these files under its own options.
+		//
+		// If a future calque version emits conforming output, delete the
+		// matching line and the build gets stricter with no other change.
+		"noImplicitOverride": false,
+		"noPropertyAccessFromIndexSignature": false,
+
 		"paths": {
 			"@template/interfaces/*": ["./src/*"]
 		}

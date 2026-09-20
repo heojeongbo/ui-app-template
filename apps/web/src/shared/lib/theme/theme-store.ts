@@ -1,6 +1,12 @@
 import { createAppStore } from "@template/core/stores";
+import { z } from "zod";
 
-export type Theme = "light" | "dark" | "system";
+/**
+ * The tuple is the source: `z.enum` needs it at runtime, and the type is
+ * inferred back out so the two cannot drift.
+ */
+export const THEMES = ["light", "dark", "system"] as const;
+export type Theme = (typeof THEMES)[number];
 
 type ThemeState = {
 	theme: Theme;
@@ -30,6 +36,12 @@ export const useThemeStore = createAppStore<ThemeState>(
 		name: "theme",
 		persistKey: "template.theme",
 		partialize: (state) => ({ theme: state.theme }),
+
+		// Lower stakes than the session, and still worth it: an unrecognised
+		// value here does not throw, it falls through every `theme === "dark"`
+		// comparison and silently renders light with the toggle showing
+		// something else. Failing to the default is a state the UI can express.
+		persistSchema: z.object({ theme: z.enum(THEMES) }),
 	},
 );
 

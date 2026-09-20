@@ -151,7 +151,11 @@ export function getLogLevel(): LogLevel {
  * read build-tool globals of its own.
  */
 export function exposeLoggingDevtools(): void {
-	(globalThis as unknown as Record<string, unknown>).__log = {
+	// Bracket access, not `.__log`: `noPropertyAccessFromIndexSignature` draws
+	// the line between a property a type declares and one it merely permits,
+	// and this is the second kind — we are adding a key to `globalThis`, not
+	// reading one it promised.
+	(globalThis as unknown as Record<string, unknown>)["__log"] = {
 		setLevel: setLogLevel,
 		getLevel: getLogLevel,
 		scopes: () => [...getAllLoggers().keys()],

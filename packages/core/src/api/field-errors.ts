@@ -59,13 +59,37 @@ export function extractFieldErrors(error: unknown): ServerFieldError[] {
  * Kept deliberately duck-typed: binding to a specific `google.rpc` schema
  * would make this package depend on those generated types, and different
  * backends attach different (but structurally identical) messages.
+ *
+ * **`debug` before `value`, and that ordering is the whole function.**
+ * `ConnectError.details` is `(OutgoingDetail | IncomingDetail)[]`, and the two
+ * spell the payload differently. On an `IncomingDetail` — which is what every
+ * detail from a real server is — `value` is the raw `Uint8Array` still in wire
+ * form and the decoded JSON sits in `debug`.
+ *
+ * Reading only `value` is therefore not a partial match, it is never a match:
+ * `typeof new Uint8Array() === "object"` passes the guard, `.fieldViolations`
+ * on it is `undefined`, and the loop `continue`s. Verified against
+ * `@connectrpc/connect@2.2.0` — with only `value` read, a `BadRequest`
+ * carrying one violation yielded zero. The function silently returned `[]` for
+ * every input, every caller fell through to the `field: message` text parser,
+ * and a server doing the precise, structured thing was ignored in favour of a
+ * convention.
  */
 function fromDetails(error: ConnectError): ServerFieldError[] {
 	const out: ServerFieldError[] = [];
 
 	for (const detail of error.details) {
-		const value = (detail as { value?: unknown }).value;
-		if (!value || typeof value !== "object") continue;
+		const { debug, value: raw } = detail as {
+			debug?: unknown;
+			value?: unknown;
+		};
+		// `debug` is the decoded payload on anything that arrived over the wire;
+		// `value` covers a detail constructed locally (tests, and the outgoing
+		// direction) where it is already an object rather than bytes.
+		const value = debug ?? raw;
+		if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) {
+			continue;
+		}
 
 		const violations = (value as { fieldViolations?: unknown }).fieldViolations;
 		if (!Array.isArray(violations)) continue;

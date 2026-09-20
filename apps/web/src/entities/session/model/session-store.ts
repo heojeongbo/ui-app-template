@@ -1,6 +1,7 @@
 import { createAppStore } from "@template/core/stores";
+import { z } from "zod";
 
-import type { Session } from "./session";
+import { type Session, sessionSchema } from "./session";
 
 type SessionState = {
 	session: Session | null;
@@ -34,6 +35,17 @@ export const useSessionStore = createAppStore<SessionState>(
 		name: "session",
 		persistKey: "template.session",
 		partialize: (state) => ({ session: state.session }),
+
+		// Guards the way back IN. `partialize` says what gets written;
+		// this says what is allowed to come back, and it is the only thing
+		// standing between localStorage and `RouterContext.session`.
+		//
+		// `.nullable()` and not `.optional()`: signed-out is a value this store
+		// writes on purpose, and it has to round-trip. A missing key is
+		// something else — an older build, or a hand-edited entry — and falls
+		// back to the initializer's `null`, which lands in the same place.
+		persistSchema: z.object({ session: sessionSchema.nullable() }),
+
 		version: 1,
 	},
 );

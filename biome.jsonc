@@ -60,6 +60,21 @@
 			// why. (`"recommended": true` is the deprecated spelling — Biome 2.5
 			// replaced it with `preset` and will drop it in the next major.)
 			"preset": "recommended",
+			"complexity": {
+				// Off because it contradicts a compiler flag, not because it is
+				// wrong. `useLiteralKeys` rewrites `obj["foo"]` to `obj.foo`;
+				// TypeScript's `noPropertyAccessFromIndexSignature` requires the
+				// bracket form whenever `foo` exists only via an index signature
+				// — `process.env`, `import.meta.env`, `DOMStringMap`.
+				//
+				// Biome has no type information, so it cannot tell the two cases
+				// apart and there is no option that would let it. Something has
+				// to give, and a type-aware correctness check outranks a
+				// type-blind style preference: the flag is what catches a typo'd
+				// `import.meta.env.VITE_API_BSAE_URL`, which is `undefined` at
+				// runtime and silent at compile time.
+				"useLiteralKeys": "off"
+			},
 			"correctness": {
 				"noUnusedImports": "error",
 				// Slice internals marked `@package` in JSDoc stop being importable
@@ -75,6 +90,16 @@
 				"noExplicitAny": "error"
 			},
 			"style": {
+				// These three stand in for TypeScript's `erasableSyntaxOnly`,
+				// which cannot be scoped to a glob — see the note in
+				// tsconfig.base.json. All three forbid syntax that needs a
+				// type-directed emit, which no bundler in this template
+				// performs: Vite, esbuild and tsx all erase types file by
+				// file. The `generated` override below turns them back off,
+				// which is the whole reason they live here and not in tsc.
+				"noEnum": "error",
+				"noNamespace": "error",
+				"noParameterProperties": "error",
 				"noRestrictedImports": {
 					"level": "error",
 					"options": {
