@@ -1,0 +1,17 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"types": ["vite/client"],
+		// Mirrored in vite.config.ts `resolve.alias`. Both must agree, or you get
+		// the failure mode that costs the most time: it resolves in Vite and not
+		// in tsc, so the dev server is happy and CI is not.
+		"paths": {
+			"@/*": ["./src/*"],
+			"@template/core/*": ["../../packages/core/src/*"],
+			"@template/design/*": ["../../packages/design/src/*"],
+			"@template/interfaces/*": ["../../packages/interfaces/src/*"],
+			"@template/interfaces": ["../../packages/interfaces/src/index.ts"]
+		}
+	},
+	"include": ["src", "vite.config.ts"]
+}

@@ -1,0 +1,11 @@
+@import "@template/design/style/style.css";
+
+/*
+ * Tailwind scans the design package from its own stylesheet. This app's source
+ * is a separate tree, so it needs its own `@source` — without it, a class used
+ * only in `apps/web` is never emitted, and the failure is silent: the element
+ * simply renders unstyled.
+ *
+ * Relative to THIS file.
+ */
+@source "../";

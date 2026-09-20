@@ -1,1 +1,1 @@
-export * from "../primitive/sonner";
+export { Toaster } from "./sonner";
