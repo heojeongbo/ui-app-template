@@ -4,8 +4,10 @@ A starter template: Vite + React + TypeScript + Tailwind + shadcn/ui +
 TanStack Router/Form/Query + zod, in Feature-Sliced Design, with a design
 system, a protobuf/ConnectRPC data layer, and structured logging.
 
-Full conventions live in [`docs/`](docs/). This file is the short version —
-the rules that are non-obvious, and the reason each one exists.
+Full conventions live in [`docs/`](docs/); start with
+[`docs/getting-started.md`](docs/getting-started.md) if the demo is still in
+place. This file is the short version — the rules that are non-obvious, and the
+reason each one exists.
 
 ## Layout
 

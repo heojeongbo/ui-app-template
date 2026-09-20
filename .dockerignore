@@ -1,0 +1,14 @@
+# Everything the build does not need. Without this the whole node_modules tree
+# and every build artefact is sent to the daemon as context, which is slow and
+# can silently overwrite the image's own install.
+node_modules
+**/node_modules
+**/dist
+**/.tsbuildinfo
+.git
+.github
+e2e/test-results
+e2e/playwright-report
+docs
+*.md
+!README.md

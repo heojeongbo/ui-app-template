@@ -127,6 +127,7 @@ of files.
 
 ## Further reading
 
+- [getting-started.md](getting-started.md) — replacing the demo with your own
 - [page-triad.md](page-triad.md) — how a screen is structured
 - [routing.md](routing.md) — routes, guards, URL state
 - [data-fetching.md](data-fetching.md) — queries, keys, invalidation

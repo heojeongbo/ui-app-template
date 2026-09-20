@@ -41,8 +41,8 @@ names, units. Only operator-facing sentences cross the boundary.
 **Sentence case.** Not Title Case.
 
 **Say what is true right now.** "Signing in…" while the request is open, not
-"Signed in". "Power-off started — the robot is going offline", not "Powered
-off". The second is a promise about the future dressed as a report.
+"Signed in". "Export started — this may take a minute", not "Exported". The
+second is a promise about the future dressed as a report.
 
 **Never claim a failure when the answer was merely lost.** This is the one that
 costs users data, because they retry and duplicate the write:

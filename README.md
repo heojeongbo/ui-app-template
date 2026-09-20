@@ -31,6 +31,10 @@ That rewrites `@template/*` across package names, `exports` maps, tsconfig
 paths, Vite aliases, `components.json` and the docs — the eight places that
 must agree or the build fails in the confusing way.
 
+**[docs/getting-started.md](docs/getting-started.md) walks the rest**: replacing
+the sample contract, deleting the demo screens, adding your first one, and
+which optional pieces to keep.
+
 ## What's in it
 
 | | |
@@ -73,7 +77,9 @@ docs/                  the conventions this template encodes
 
 ## Documentation
 
-Start with [`docs/architecture.md`](docs/architecture.md). Then, by topic:
+Start with [`docs/getting-started.md`](docs/getting-started.md) to make it
+yours, then [`docs/architecture.md`](docs/architecture.md) for how it fits
+together. By topic:
 
 - [page-triad](docs/page-triad.md) — how a screen is structured, and the rule
   that makes it hold
@@ -90,6 +96,20 @@ Start with [`docs/architecture.md`](docs/architecture.md). Then, by topic:
 `CLAUDE.md` and `AGENTS.md` are the short form, for humans in a hurry and for
 coding agents.
 
+## Deploying
+
+One image, every environment:
+
+```sh
+docker build -t my-app .
+docker run -e APP_API_BASE_URL=https://api.example.com -p 8080:80 my-app
+```
+
+The entrypoint rewrites `config.js` at boot, so a build is not pinned to the
+backend it was built against — `VITE_*` values are inlined by the bundler and
+cannot be changed afterwards. See
+[env-and-runtime-config](docs/env-and-runtime-config.md).
+
 ## Requirements
 
 - Node >= 22
@@ -100,5 +120,9 @@ coding agents.
      shell shims at the package root, and the Corepack bundled with Node 22/24
      (0.34.x) hardcodes the old path and cannot launch it. Bump once Corepack
      >= 0.36 is what ships with Node LTS. -->
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 [fsd]: https://feature-sliced.design/

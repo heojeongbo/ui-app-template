@@ -53,6 +53,28 @@ value is worse than falling back to the build-time default and saying so.
 Precedence is **runtime > build-time**: the runtime value is the one someone set
 on purpose for this deployment.
 
+## What ships it
+
+`Dockerfile` + `docker/entrypoint.sh`. nginx runs everything in
+`/docker-entrypoint.d` before starting, so the rewrite needs no `CMD` of its
+own:
+
+```sh
+docker build -t my-app .
+docker run -e APP_API_BASE_URL=https://api.example.com -p 8080:80 my-app
+```
+
+The entrypoint emits **only keys that are actually set**. A key
+present-but-empty would override the build-time default with an empty string,
+which is worse than absent — `readRuntimeConfig` treats absent as "fall back"
+and empty as a value.
+
+`docker/nginx.conf` does two things beyond serving files: an SPA fallback, so a
+hard refresh on any route reaches `index.html` instead of nginx's own 404; and
+`no-store` on `index.html` and `config.js`, because a cached copy of either
+pins the browser to a previous deployment. Hashed assets are immutable and
+cached forever.
+
 ## Which to use
 
 | Question | Answer |

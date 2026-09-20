@@ -15,6 +15,7 @@
  */
 import { describe, it } from "vitest";
 
+// Spec: ../../docs/screens/item-detail.md
 describe("item detail (not built)", () => {
 	it.todo("S1: shows the item's full description and timestamps");
 	it.todo(
