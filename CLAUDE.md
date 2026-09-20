@@ -30,7 +30,8 @@ pnpm test                # vitest
 pnpm test:scenario       # scenario tests only
 pnpm e2e                 # Playwright against a production build
 pnpm gen:proto           # regenerate protobuf types
-pnpm ui:add <name>       # install a shadcn component
+pnpm ui:add <name>       # install (or upgrade) a shadcn component
+pnpm ui:remove <name>    # remove one — refuses if still imported
 pnpm rename:scope @acme  # rebrand @template/* to your own scope
 ```
 

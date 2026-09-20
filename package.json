@@ -20,6 +20,7 @@
 		"e2e": "pnpm -C e2e test",
 		"gen:proto": "pnpm -C packages/interfaces gen:proto",
 		"ui:add": "pnpm -C packages/design ui:add",
+		"ui:remove": "pnpm -C packages/design ui:remove",
 		"ui:sync": "pnpm -C packages/design ui:sync",
 		"rename:scope": "node scripts/rename-scope.mjs",
 		"prepare": "husky",

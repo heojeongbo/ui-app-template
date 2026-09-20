@@ -72,7 +72,8 @@ docs/                  the conventions this template encodes
 | `pnpm e2e` | Playwright against a production build |
 | `pnpm gen:proto` | Regenerate protobuf types |
 | `pnpm gen:proto:calque` | Tier 2 codegen (needs Go) |
-| `pnpm ui:add <name>` | Install a shadcn component |
+| `pnpm ui:add <name>` | Install or upgrade a shadcn component |
+| `pnpm ui:remove <name>` | Remove one — refuses if still imported |
 | `pnpm rename:scope @acme` | Rebrand the workspace |
 
 ## Documentation

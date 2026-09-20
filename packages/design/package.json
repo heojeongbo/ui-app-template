@@ -8,6 +8,7 @@
 		"lint": "biome lint",
 		"check": "biome check --write",
 		"ui:add": "tsx scripts/add-ui.mts",
+		"ui:remove": "tsx scripts/remove-ui.mts",
 		"ui:sync": "tsx scripts/sync-ui-barrel.mts",
 		"test": "vitest run --passWithNoTests",
 		"test:watch": "vitest watch"

@@ -56,6 +56,9 @@ it, say which step, paste the output, and say what you tried.
 3. Customise in `ui/<name>/<name>.tsx`, never in `ui/primitive/`.
 4. A recurring tweak is a `cva` variant, not a call-site `className`.
 
+Removing one is `pnpm ui:remove <name>`, which refuses while anything still
+imports it. Never `rm -rf` a component folder by hand.
+
 ## Things not to do
 
 - Do not add a global mutation-error toast.

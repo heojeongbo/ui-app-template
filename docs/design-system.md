@@ -23,9 +23,22 @@ nothing — `ui:add` writes it — and buys two things: `ui/`'s folder listing i
 accurate inventory of what the design system offers, and the day a component
 *does* need customising, no call site moves.
 
-Lint is **off** for `primitive/`; formatting is **on**. Fixing upstream's lint
-findings by hand is work the next `--overwrite` throws away, but tabs and double
-quotes are a mechanical rewrite the CLI has no opinion about.
+### What Biome does and does not do to `primitive/`
+
+| | `ui/primitive/` | `ui/<name>/` (ours) |
+| --- | --- | --- |
+| **Lint** | off | on |
+| **Format** | **on** | on |
+
+Lint is off because fixing upstream's findings by hand is work the next
+`--overwrite` throws away, and they are upstream's to make. Formatting stays on
+because shadcn emits spaces and single quotes while the workspace is tabs and
+double quotes — a mechanical rewrite the CLI has no opinion about, so it costs
+nothing on re-install and keeps diffs readable.
+
+The practical consequence: an installed component may contain `any`, an unused
+variable, or a missing hook dependency and the build stays green. The same code
+in `ui/<name>/` fails.
 
 ## Adding a component
 
@@ -48,6 +61,38 @@ Five steps, because `shadcn add` only does the first:
 it safe. Without it the CLI prompts whenever a component pulls in one that
 already exists (`alert-dialog` needs `button`), and under `--yes` that prompt
 makes the whole install bail silently — the requested component never lands.
+
+### Upgrading
+
+Re-run the same command. `--overwrite` is the default, so it replaces the
+primitive with the current registry version, re-runs the `cn` normalisation,
+and leaves your `ui/<name>/` wrapper untouched — which is the entire point of
+the split.
+
+```sh
+pnpm ui:add button          # upgrade one
+pnpm ui:add button card     # or several
+```
+
+Check the diff afterwards. Upstream occasionally changes a component's exported
+names or its props, and that surfaces as a type error in your wrapper — which is
+where you want it, rather than at a call site.
+
+### Removing
+
+```sh
+pnpm ui:remove tooltip
+```
+
+It **refuses to remove a component that is still imported**, listing the files.
+`rm -rf` cannot do that, and deleting by hand surfaces the failure somewhere
+else entirely — a type error in an app, three packages away from what you
+removed. `--force` overrides it.
+
+It deletes `ui/<name>/` and `ui/primitive/<name>.tsx` and regenerates the
+barrel. It does **not** uninstall npm dependencies the component pulled in —
+those are shared, and deciding whether another component still needs one is
+guesswork. `pnpm why <pkg>` is the honest check.
 
 ### After installing: check the bottom of `style.css`
 
