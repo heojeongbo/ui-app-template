@@ -33,6 +33,27 @@
 		-moz-osx-font-smoothing: grayscale;
 	}
 
+	/*
+	 * Animation is a comfort for most people and a vestibular trigger for some.
+	 * Near-zero rather than `none`: a duration of 0 makes some libraries skip
+	 * their transition-end event, and a component waiting on one then never
+	 * finishes closing.
+	 */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		::before,
+		::after {
+			/* biome-ignore-start lint/complexity/noImportantStyles: overriding every
+			   component's own animation is the entire job here — a user who asked
+			   for reduced motion must not be overruled by a more specific rule. */
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+			/* biome-ignore-end lint/complexity/noImportantStyles: see above */
+		}
+	}
+
 	/* Digits must not jitter as live values tick. Global rather than per
 	   component, because every number rendered in a mono face is a value. */
 	.font-mono {

@@ -52,6 +52,21 @@ export default defineConfig([
 			 * for the sake of a lint.
 			 */
 			"fsd/segments-by-purpose": "off",
+
+			/**
+			 * OFF — it misreports.
+			 *
+			 * The rule flags `entities/item` with "This slice has no references",
+			 * and that is simply false: it is imported from ten places across
+			 * three layers (`rg "@/entities/item" apps/web/src`). It started
+			 * firing when a SECOND consuming layer was added, so whatever it is
+			 * counting, it is not references.
+			 *
+			 * Turned off because it is wrong here, not because the idea is bad —
+			 * a slice nothing imports genuinely is worth deleting. If a future
+			 * release fixes the count, turn it back on.
+			 */
+			"fsd/insignificant-slice": "off",
 		},
 	},
 ]);
