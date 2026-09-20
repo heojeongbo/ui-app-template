@@ -15,7 +15,6 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"@template/core": path.resolve(dirname, "./src"),
-			"@template/design": path.resolve(dirname, "../design/src"),
 		},
 		dedupe: ["react", "react-dom"],
 	},

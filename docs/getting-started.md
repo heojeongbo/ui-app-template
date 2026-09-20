@@ -76,11 +76,16 @@ apps/web/docs/screens/item*.md
 e2e/tests/items.spec.ts
 ```
 
+Then drop the `items` entry from `widgets/app-shell/nav-items.ts` and its icon
+from `app-shell.tsx`.
+
 Keep `pages/signin/` and `entities/session/` — wire them to your real auth (the
 sign-in submit is a `setTimeout` stand-in; replace it with a mutation) — and
 keep everything in `shared/`.
 
-`pnpm fsd:check` will tell you if you left a dangling import.
+`pnpm type:check` will tell you if you left a dangling import — including the
+stale nav entry, which `pnpm fsd:check` cannot see because it is a string
+literal, not an import.
 
 ## 5. Add your first screen
 
@@ -98,6 +103,9 @@ scenario tests writable:
    keeping the numbers.
 5. A thin route under `src/routes/`: path, zod search, guard, loader,
    `component`.
+6. A nav entry in `widgets/app-shell/nav-items.ts` plus its icon in
+   `app-shell.tsx` — nothing warns you if you skip this, and the screen is
+   then unreachable except by typing the URL.
 
 `apps/web/docs/screens/items.md` and `pages/items/` are the worked example of
 every step. [page-triad.md](page-triad.md) explains the rule that makes it hold.

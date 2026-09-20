@@ -106,6 +106,18 @@ export function toOffset(page: number, pageSize: number): number {
 }
 
 /**
+ * The last page that exists. Zero rows is still page 1, never page 0.
+ *
+ * Extracted because the identical expression was inlined in the pager's JSX,
+ * driving `disabled={page >= lastPage}` — the off-by-one the whole
+ * extract-decisions-into-`.ts` discipline exists for, in a file no scenario
+ * test can reach.
+ */
+export function lastPage(total: number, pageSize: number): number {
+	return Math.max(1, Math.ceil(total / pageSize));
+}
+
+/**
  * Clamp a page to what actually exists.
  *
  * Needed after a query returns: deleting the last row on page 4 leaves the URL
@@ -117,6 +129,5 @@ export function clampPage(
 	total: number,
 	pageSize: number,
 ): number {
-	const lastPage = Math.max(1, Math.ceil(total / pageSize));
-	return Math.min(Math.max(1, page), lastPage);
+	return Math.min(Math.max(1, page), lastPage(total, pageSize));
 }

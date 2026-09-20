@@ -12,3 +12,11 @@ e2e/playwright-report
 docs
 *.md
 !README.md
+
+# `**/` is load-bearing: a bare `.env.local` matches only a root-level file,
+# and the one that matters is at `apps/web/.env.local`. Without the glob it
+# rides into the image through `COPY . .`, and a dev's mocks-on flag gets
+# baked into a production bundle — which the app then announces at startup,
+# but only to whoever is reading that console.
+**/.env.local
+**/.env.*.local

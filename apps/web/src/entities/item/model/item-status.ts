@@ -41,8 +41,16 @@ export function statusFromFilter(filter: StatusFilter): ItemStatus {
 	return FILTER_TO_STATUS[filter];
 }
 
-/** Stable keys for copy lookup. Never the enum's number — that is wire detail. */
-export function statusKey(status: ItemStatus): StatusFilter {
+/**
+ * Stable keys for copy lookup. Never the enum's number — that is wire detail.
+ *
+ * Returns `"unknown"`, never `"all"`. `"all"` is filter vocabulary and renders
+ * as "All statuses", so a row the server sent with an unset or newer status
+ * would display as though it were every status at once.
+ */
+export type StatusDisplayKey = Exclude<StatusFilter, "all"> | "unknown";
+
+export function statusKey(status: ItemStatus): StatusDisplayKey {
 	switch (status) {
 		case Status.DRAFT:
 			return "draft";
@@ -50,11 +58,14 @@ export function statusKey(status: ItemStatus): StatusFilter {
 			return "active";
 		case Status.ARCHIVED:
 			return "archived";
+		case Status.UNSPECIFIED:
+			return "unknown";
 		default:
-			// UNSPECIFIED reaching a row means the server sent a status this build
-			// does not know — a newer enum member, most likely. Rendering it as
-			// "all" would be nonsense, so treat it as the neutral case.
-			return "all";
+			// `satisfies never` is the alarm: add a member to the proto enum and
+			// this line stops compiling, which is the only signal that a row can
+			// now arrive with a status no screen knows how to label.
+			status satisfies never;
+			return "unknown";
 	}
 }
 

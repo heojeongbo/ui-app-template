@@ -72,7 +72,7 @@ export function ItemsTable({
 								<TableCell className="font-medium">{item.name}</TableCell>
 								<TableCell>
 									<Badge variant={TONE_VARIANT[statusTone(item.status)]}>
-										{itemsContent.statusOptions[key]}
+										{itemsContent.statusLabels[key]}
 									</Badge>
 								</TableCell>
 								<TableCell className="max-w-md truncate text-muted-foreground">

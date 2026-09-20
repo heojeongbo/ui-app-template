@@ -1,4 +1,4 @@
-import type { StatusFilter } from "@/entities/item";
+import type { StatusDisplayKey, StatusFilter } from "@/entities/item";
 
 /**
  * Everything this screen says.
@@ -19,12 +19,24 @@ export const itemsContent = {
 
 	searchPlaceholder: "Search items",
 	statusLabel: "Status",
+	pageSizeLabel: "Per page",
+	// The FILTER vocabulary — what the dropdown offers, including "everything".
 	statusOptions: {
 		all: "All statuses",
 		draft: "Draft",
 		active: "Active",
 		archived: "Archived",
 	} satisfies Record<StatusFilter, string>,
+
+	// The DISPLAY vocabulary — what a row's badge says. Deliberately a
+	// different set: a row is never "All statuses", and it CAN be a status
+	// this build does not know, if the server is ahead of the client.
+	statusLabels: {
+		draft: "Draft",
+		active: "Active",
+		archived: "Archived",
+		unknown: "Unknown",
+	} satisfies Record<StatusDisplayKey, string>,
 
 	// Interpolating entries are functions, so a translation can reorder the
 	// numbers. String concatenation at the call site cannot.

@@ -1,6 +1,8 @@
 import { Button } from "@template/design/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
+import { lastPage } from "@/shared/lib/search";
+
 import { itemsContent } from "./items.content";
 import { type ItemsSearch, visibleRange } from "./items.filters";
 
@@ -26,7 +28,7 @@ export function ItemsPager({
 	onStep: (delta: -1 | 1) => void;
 }) {
 	const { from, to } = visibleRange(search, total);
-	const lastPage = Math.max(1, Math.ceil(total / search.pageSize));
+	const last = lastPage(total, search.pageSize);
 
 	return (
 		<nav
@@ -39,7 +41,7 @@ export function ItemsPager({
 
 			<div className="flex items-center gap-2">
 				<span className="text-muted-foreground text-sm">
-					{itemsContent.page(search.page, lastPage)}
+					{itemsContent.page(search.page, last)}
 				</span>
 				<Button
 					variant="outline"
@@ -53,7 +55,7 @@ export function ItemsPager({
 				<Button
 					variant="outline"
 					size="sm"
-					disabled={search.page >= lastPage}
+					disabled={search.page >= last}
 					onClick={() => onStep(1)}
 				>
 					{itemsContent.next}

@@ -31,6 +31,15 @@ emit() {
 		printf '"logLevel":"%s",' "$APP_LOG_LEVEL"
 	fi
 
+	# A whole palette, as JSON, for a tenant-branded deployment:
+	#   APP_THEME='{"light":{"primary":"oklch(0.55 0.22 260)"},"dark":{...}}'
+	# Passed through verbatim — `injectThemeTokens` validates the keys and logs
+	# the ones it does not recognise, which is a better error than anything this
+	# shell could produce.
+	if [ -n "${APP_THEME:-}" ]; then
+		printf '"theme":%s,' "$APP_THEME"
+	fi
+
 	printf '};\n'
 }
 

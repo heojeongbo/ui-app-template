@@ -1,0 +1,23 @@
+# Biome is the authority; this is for files it does not format (Markdown,
+# YAML, shell, proto) and for editors without the extension installed.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+
+[*.{md,yml,yaml}]
+# YAML forbids tabs outright, and Markdown list nesting is defined in spaces.
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Two trailing spaces is a hard line break.
+trim_trailing_whitespace = false
+
+[*.proto]
+indent_style = space
+indent_size = 2

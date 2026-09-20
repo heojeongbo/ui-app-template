@@ -1,0 +1,15 @@
+{
+	// Biome replaces ESLint AND Prettier here. Without the extension the editor
+	// either does nothing on save or, worse, runs Prettier and fights the
+	// repo's formatter on every keystroke.
+	"recommendations": [
+		"biomejs.biome",
+		"bradlc.vscode-tailwindcss",
+		"ms-playwright.playwright",
+		"zxh404.vscode-proto3"
+	],
+	"unwantedRecommendations": [
+		"esbenp.prettier-vscode",
+		"dbaeumer.vscode-eslint"
+	]
+}

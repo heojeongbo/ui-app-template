@@ -28,6 +28,10 @@ S5. When a result arrives for a page past the end, the page is corrected to the
 S6. The empty state distinguishes "nothing here yet" from "nothing matches".
 S7. The range label counts real rows, so the last page shows the true count and
     not `page * pageSize`.
+S8. The URL vocabulary (`status: "all"`, `q`) maps to the wire vocabulary
+    (`UNSPECIFIED`, `query`) in exactly one place, shared by the route's loader
+    and the page's query — so the two cannot prime and read different cache
+    entries.
 
 ## Data
 

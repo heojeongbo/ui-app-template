@@ -1,4 +1,8 @@
-import type { StatusFilter } from "@/entities/item";
+import {
+	type ItemListParams,
+	type StatusFilter,
+	statusFromFilter,
+} from "@/entities/item";
 import { clampPage } from "@/shared/lib/search";
 
 /**
@@ -85,6 +89,43 @@ export function correctOverflowPage(
 /** S6 — is the user filtering at all? Drives the empty state's wording. */
 export function hasActiveFilters(search: ItemsSearch): boolean {
 	return search.status !== "all" || Boolean(search.q);
+}
+
+/**
+ * S6 — the exact inverse of `hasActiveFilters`.
+ *
+ * Here rather than inline in the JSX so the two stay together and a test can
+ * hold them to each other. Written apart, adding a third filter to the bar and
+ * forgetting this object clears two of three: the empty state stays up and
+ * "Clear filters" reads as broken.
+ *
+ * `pageSize` survives deliberately — it is a display preference, not a filter.
+ */
+export function clearFilters(search: ItemsSearch): ItemsSearch {
+	return { ...search, status: "all", q: undefined, page: 1 };
+}
+
+/**
+ * S8 — the URL vocabulary translated to the wire vocabulary.
+ *
+ * The one place that mapping is written. It used to exist three times — the
+ * route's `loaderDeps`, the route's loader, and the page's query — and nothing
+ * held them together: `ItemListParams.query` is optional, the page's object
+ * was an unannotated const so excess-property checking never fired, and query
+ * keys hash structurally. A mismatch therefore primed one cache entry and
+ * subscribed to another, rendering stale rows under a correct-looking URL.
+ *
+ * Doubling as `loaderDeps` keeps the loader narrow by construction: it depends
+ * on exactly what the query keys on, so an unrelated search param changing
+ * cannot re-run it.
+ */
+export function itemsListParams(search: ItemsSearch): ItemListParams {
+	return {
+		page: search.page,
+		pageSize: search.pageSize,
+		status: statusFromFilter(search.status),
+		query: search.q,
+	};
 }
 
 /**

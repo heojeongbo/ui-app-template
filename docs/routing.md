@@ -92,15 +92,54 @@ which peer-depends on zod 3 in every published version.
 Clear a param to `undefined`, never `""`. An empty `?q=` is noise and defeats
 the strip.
 
+### Writing search params
+
+Parsing is above; writing has three rules of its own, and the first one is a
+bug people hit before they hit the rule.
+
+**1. Pass a FUNCTION to `navigate({ search })`, never a precomputed object.**
+
+```ts
+// ✅ derives from the search as it is right now
+navigate({ search: (prev) => applyPage(prev, prev.page + 1), replace: true })
+
+// ❌ reads `search` from the render that created the handler
+navigate({ search: applyPage(search, search.page + 1), replace: true })
+```
+
+The object form is computed from the closure of the render that made the
+handler. Two clicks before React re-renders both read the same stale page, so
+clicking Next twice quickly lands on page 2 instead of 3 — silently skipping
+one. That is why the items pager hands its parent a **direction** rather than a
+target page: the pager's own `search` prop comes from the same stale render, so
+it cannot compute the target correctly either.
+
+**2. The same rule inside an effect.** An effect scheduled on one render can run
+after the search has already moved on.
+
+**3. `replace: true` for filter changes.** The back button should leave the
+screen, not undo a filter one keystroke at a time. Page steps are a judgement
+call — push is defensible there, which is one reason this stays a documented
+rule rather than a shared hook.
+
 ## Loaders
 
 The `queryClient` is in the router context, so a loader can prime the cache
 while the route is still resolving — rather than after the component mounts.
 
 ```ts
-loaderDeps: ({ search }) => ({ page: search.page, /* only what the query keys on */ }),
+loaderDeps: ({ search }) => itemsListParams(search),
 loader: ({ context, deps }) => context.queryClient.ensureQueryData(itemQueries.list(deps)),
 ```
+
+`itemsListParams` is a pure function in the screen's decision module. It exists
+because `search` and the query input are **different vocabularies** — the URL
+says `status: "all"` and `q`, the wire wants `UNSPECIFIED` and `query` — and
+writing that mapping twice means the loader primes one cache entry while the
+page subscribes to another. Query keys hash structurally, so that mismatch
+renders stale rows under a correct-looking URL rather than throwing.
+
+Sharing it with `loaderDeps` also makes the loader narrow by construction.
 
 `ensureQueryData`, not `fetchQuery`: it reuses a fresh cache entry, so
 navigating back to a list is instant. Narrow `loaderDeps` to what the query

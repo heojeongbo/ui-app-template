@@ -2,8 +2,7 @@
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
 		"paths": {
-			"@template/core/*": ["./src/*"],
-			"@template/design/*": ["../design/src/*"]
+			"@template/core/*": ["./src/*"]
 		},
 		"types": ["vite/client"]
 	},

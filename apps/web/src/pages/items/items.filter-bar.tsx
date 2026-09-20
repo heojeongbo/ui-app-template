@@ -90,7 +90,7 @@ export function ItemsFilterBar({
 
 			<div className="flex flex-col gap-1.5">
 				<label htmlFor={sizeId} className="font-medium text-sm">
-					Per page
+					{itemsContent.pageSizeLabel}
 				</label>
 				<Select
 					value={String(search.pageSize)}

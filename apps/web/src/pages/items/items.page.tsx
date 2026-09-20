@@ -5,11 +5,7 @@ import type { proto } from "@template/interfaces";
 import { BoxIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import {
-	itemQueries,
-	type StatusFilter,
-	statusFromFilter,
-} from "@/entities/item";
+import { itemQueries, type StatusFilter } from "@/entities/item";
 import { ItemEditorDialog } from "@/features/item-editor";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -21,9 +17,11 @@ import {
 	applyPageSize,
 	applyQuery,
 	applyStatusFilter,
+	clearFilters,
 	correctOverflowPage,
 	hasActiveFilters,
 	type ItemsSearch,
+	itemsListParams,
 } from "./items.filters";
 import { ItemsPager } from "./items.pager";
 import { ItemsTable } from "./items.table";
@@ -52,17 +50,12 @@ export function ItemsPage() {
 	>(undefined);
 	const { pendingId, remove } = useItemActions();
 
-	const params = {
-		page: search.page,
-		pageSize: search.pageSize,
-		status: statusFromFilter(search.status),
-		query: search.q,
-	};
-
 	// `useSuspenseQuery` and not `useQuery`: the route's loader has already
 	// primed this exact key via `ensureQueryData`, so the data is present on
 	// first render and there is no `data === undefined` branch to write.
-	const { data, isFetching } = useSuspenseQuery(itemQueries.list(params));
+	const { data, isFetching } = useSuspenseQuery(
+		itemQueries.list(itemsListParams(search)),
+	);
 
 	/**
 	 * Navigate by DERIVING from the current search, never from the render's
@@ -140,17 +133,7 @@ export function ItemsPage() {
 						}
 						action={
 							filtering ? (
-								<Button
-									variant="outline"
-									onClick={() =>
-										update((prev) => ({
-											...prev,
-											status: "all",
-											q: undefined,
-											page: 1,
-										}))
-									}
-								>
+								<Button variant="outline" onClick={() => update(clearFilters)}>
 									{itemsContent.clearFilters}
 								</Button>
 							) : (

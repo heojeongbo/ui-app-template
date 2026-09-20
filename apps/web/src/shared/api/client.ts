@@ -14,8 +14,9 @@ const cache = new Map<string, unknown>();
  * transport into every request.
  *
  * Memoised per service because `createClient` walks every method on the
- * descriptor and closes over each one; rebuilding that on every keystroke of a
- * filtered list is real work for no benefit.
+ * descriptor and closes over each one. Not a hot path — the filter bar commits
+ * on Enter and blur rather than per keystroke — but a query re-runs on every
+ * page step and filter change, and a `Map` lookup is the cheaper default.
  */
 export function getClient<T extends DescService>(service: T): Client<T> {
 	const existing = cache.get(service.typeName);

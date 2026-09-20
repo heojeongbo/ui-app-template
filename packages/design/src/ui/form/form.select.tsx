@@ -21,8 +21,6 @@ type FormSelectProps = {
 	placeholder?: string;
 	disabled?: boolean;
 	size?: "sm" | "default";
-	triggerClassName?: string;
-	contentClassName?: string;
 	showErrorMessage?: boolean;
 };
 
@@ -73,7 +71,6 @@ function useSelectParts({
 
 export function FormSelect({
 	showErrorMessage = true,
-	contentClassName: _contentClassName,
 	...props
 }: FormSelectProps) {
 	const { control, errorId } = useSelectParts(props);

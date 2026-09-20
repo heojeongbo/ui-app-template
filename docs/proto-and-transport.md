@@ -104,9 +104,14 @@ that "sometimes" runs.
 - **Return the entity from a mutation, not just its id.** The server
   normalises; seeding the read cache with the *response* is what keeps a list
   and a form agreeing.
-- **Bridge zod to proto with `satisfies z.ZodType<…>`.** It pins the form's
-  shape against the generated request type, so a renamed proto field becomes a
-  compile error instead of a silently-empty string on the wire.
+- **Derive form defaults from the generated message type, never a hand-written
+  literal.** A form's shape is usually *not* the request's shape — a `<select>`
+  yields strings whatever the proto says — so `satisfies z.ZodType<Request>`
+  generally cannot be written. What does work is typing the function that
+  builds the defaults: `itemEditorDefaults(item: proto.example_v1.Item):
+  ItemEditorValues` turns a renamed field into a compile error. Pair it with a
+  mutation input typed as `Omit<GeneratedRequest, "$typeName">`, which catches
+  the added-field case the defaults cannot.
 
 ## Mocking
 

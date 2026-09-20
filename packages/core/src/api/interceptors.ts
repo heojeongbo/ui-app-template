@@ -86,18 +86,3 @@ export function intercept(
 		return handler(next)(req);
 	};
 }
-
-/**
- * Compose per-RPC handlers into one interceptor.
- *
- * Use this and not a bare spread of raw handlers. An unwrapped handler answers
- * EVERY rpc — it has no idea which method it was registered for — and it still
- * type-checks, so the mistake surfaces as unrelated endpoints returning the
- * wrong shape at runtime. Wrapping each with `intercept()` first is what makes
- * the composition safe.
- */
-export function mergeInterceptors(
-	interceptors: readonly Interceptor[],
-): Interceptor[] {
-	return [...interceptors];
-}

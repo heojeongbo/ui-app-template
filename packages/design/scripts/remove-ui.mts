@@ -53,8 +53,8 @@ function consumersOf(name: string): string[] {
 			"--include=*.ts",
 			"--include=*.tsx",
 			"--exclude-dir=node_modules",
-			"--exclude-dir=primitive",
-			`design/ui/${name}("|'|/)`,
+			// `primitive/` is searched, not skipped — see above.
+			`design/ui/(primitive/)?${name}("|'|/)`,
 			"apps",
 			"packages",
 		],
@@ -64,11 +64,15 @@ function consumersOf(name: string): string[] {
 	// grep exits 1 when it matches nothing, which is the common case here.
 	if (status !== 0 || !stdout.trim()) return [];
 
-	return stdout
-		.trim()
-		.split("\n")
-		.filter((file) => !file.endsWith("src/ui/index.ts"))
-		.filter((file) => !file.includes(`src/ui/${name}/`));
+	return (
+		stdout
+			.trim()
+			.split("\n")
+			.filter((file) => !file.endsWith("src/ui/index.ts"))
+			.filter((file) => !file.includes(`src/ui/${name}/`))
+			// The component's own primitive is not a consumer of itself.
+			.filter((file) => !file.endsWith(`src/ui/primitive/${name}.tsx`))
+	);
 }
 
 let removed = 0;

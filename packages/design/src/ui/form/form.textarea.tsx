@@ -45,6 +45,10 @@ export function FormTextareaWithLabel({
 	labelProps,
 	orientation,
 	showErrorMessage,
+	// Destructured, not left in the rest: it is not a DOM attribute, and the
+	// primitive spreads whatever it receives onto the element — so leaving it
+	// in produces a React unknown-prop warning at runtime.
+	containerClassName,
 	...textareaProps
 }: FormTextareaProps & FormFieldLabelProps) {
 	const { field, id, errorId, controlProps } = useFormField<string>();
@@ -61,6 +65,7 @@ export function FormTextareaWithLabel({
 			showErrorMessage={showErrorMessage}
 			htmlFor={id}
 			errorId={errorId}
+			className={containerClassName}
 		>
 			<Textarea
 				{...controlProps}

@@ -28,7 +28,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Lint and format
-        run: pnpm lint
+        # `biome ci`, not `biome lint`. `lint` verifies neither formatting nor
+        # the organizeImports assist, and covers 187 files where `ci` covers
+        # 231 — the JSON/JSONC/CSS difference. A step named "Lint and format"
+        # that checks only one of them is the kind of comment this repo treats
+        # as worse than no comment.
+        run: pnpm exec biome ci
 
       - name: FSD boundaries
         # Layer direction and barrel-only imports. Biome has no rule for this,

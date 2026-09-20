@@ -1,0 +1,41 @@
+{
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		// Biome owns import order (NODE / PACKAGE / ALIAS / PATH). Leaving this
+		// off means every commit reorders imports in the pre-commit hook and the
+		// diff you reviewed is not the diff you pushed.
+		"source.organizeImports.biome": "explicit"
+	},
+	"[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+	"[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+	"[json]": { "editor.defaultFormatter": "biomejs.biome" },
+	"[jsonc]": { "editor.defaultFormatter": "biomejs.biome" },
+	"[css]": { "editor.defaultFormatter": "biomejs.biome" },
+
+	// Tailwind v4 is CSS-first: `@theme`, `@source`, `@custom-variant` and
+	// `@utility` are real at-rules, and the built-in CSS language service
+	// reports each as "Unknown at rule".
+	"css.lint.unknownAtRules": "ignore",
+	"tailwindCSS.experimental.configFile": "packages/design/src/style/style.css",
+	// `cn()` and `cva()` take class strings; without this they get no
+	// completion and no colour swatches.
+	"tailwindCSS.classFunctions": ["cn", "cva", "clsx"],
+
+	// Generated. Editing them is always a mistake; searching them is noise.
+	"files.readonlyInclude": {
+		"**/routeTree.gen.ts": true,
+		"**/src/gen/**": true,
+		"**/src/gen-calque/**": true,
+		"**/src/ui/index.ts": true
+	},
+	"search.exclude": {
+		"**/routeTree.gen.ts": true,
+		"**/src/gen/**": true,
+		"**/src/gen-calque/**": true,
+		"**/pnpm-lock.yaml": true
+	},
+
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true
+}

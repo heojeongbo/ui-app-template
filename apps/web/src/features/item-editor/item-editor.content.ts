@@ -1,4 +1,4 @@
-import type { StatusFilter } from "@/entities/item";
+import type { StatusDisplayKey } from "@/entities/item";
 
 /**
  * Copy for the editor.
@@ -16,12 +16,15 @@ export const itemEditorContent = {
 	nameLabel: "Name",
 	descriptionLabel: "Description",
 	statusLabel: "Status",
+	// No `all` entry: the editor picks ONE status, it does not filter. The dead
+	// entry that used to be here is what made an unlabelled status render
+	// cleanly as "All statuses" instead of showing up as undefined.
 	statusOptions: {
-		all: "All statuses",
 		draft: "Draft",
 		active: "Active",
 		archived: "Archived",
-	} satisfies Record<StatusFilter, string>,
+		unknown: "Unknown",
+	} satisfies Record<StatusDisplayKey, string>,
 
 	create: "Create",
 	save: "Save",

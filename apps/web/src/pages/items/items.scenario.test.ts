@@ -9,16 +9,21 @@
  * screen makes lives in `items.filters.ts` as a pure function. See
  * docs/screens/README.md.
  */
+import { proto } from "@template/interfaces";
 import { describe, expect, it } from "vitest";
+
+const { ItemStatus } = proto.example_v1;
 
 import {
 	applyPage,
 	applyPageSize,
 	applyQuery,
 	applyStatusFilter,
+	clearFilters,
 	correctOverflowPage,
 	hasActiveFilters,
 	type ItemsSearch,
+	itemsListParams,
 	visibleRange,
 } from "./items.filters";
 
@@ -95,6 +100,41 @@ describe("items screen", () => {
 		expect(hasActiveFilters(base)).toBe(false);
 		expect(hasActiveFilters(applyStatusFilter(base, "draft"))).toBe(true);
 		expect(hasActiveFilters(applyQuery(base, "widget"))).toBe(true);
+
+		// `clearFilters` is the exact inverse, and they are held to each other
+		// here because they are written in different places. Add a third filter
+		// and forget one, and "Clear filters" clears two of three while the
+		// empty state stays up.
+		expect(hasActiveFilters(clearFilters(applyQuery(base, "widget")))).toBe(
+			false,
+		);
+		expect(
+			hasActiveFilters(clearFilters(applyStatusFilter(base, "draft"))),
+		).toBe(false);
+		// A display preference, not a filter — it survives.
+		expect(clearFilters({ ...base, pageSize: 50 }).pageSize).toBe(50);
+	});
+
+	it("S8: the URL vocabulary maps to the wire vocabulary in exactly one place", () => {
+		// "all" is a UI concept; the wire has no such status. Sending a real
+		// status here would make a filter nobody chose exclude everything.
+		expect(itemsListParams(base).status).toBe(ItemStatus.UNSPECIFIED);
+		expect(itemsListParams(applyStatusFilter(base, "active")).status).toBe(
+			ItemStatus.ACTIVE,
+		);
+
+		// `q` is the URL name, `query` is the wire name. They differ, which is
+		// precisely why this mapping being written three times was a bug: the
+		// key hashes structurally, so an omission primed one cache entry and
+		// the page subscribed to another.
+		expect(itemsListParams(applyQuery(base, "widget")).query).toBe("widget");
+		expect(itemsListParams(base).query).toBeUndefined();
+
+		// Pagination passes through unchanged.
+		expect(itemsListParams({ ...base, page: 3, pageSize: 50 })).toMatchObject({
+			page: 3,
+			pageSize: 50,
+		});
 	});
 
 	it("S7: the range label counts real rows on the last page", () => {

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { readRuntimeConfig } from "./runtime-config";
+
 /**
  * Typed, validated environment — parsed once, at module load.
  *
@@ -69,6 +71,17 @@ export const env: Env = parseEnv(import.meta.env);
  * is a decision that cannot be undone from the field.
  */
 export function resolveLogLevel(): (typeof LOG_LEVELS)[number] {
+	// Runtime first, for the same reason the transport reads it: the build-time
+	// value is baked into the image, so raising the level on one deployment to
+	// chase a bug would otherwise mean a rebuild.
+	//
+	// Safe to call here even though this runs before `initLogging` —
+	// `readRuntimeConfig` does not log. Reporting a MALFORMED config does, and
+	// that warning deliberately stays in the entry point, after the logger
+	// exists.
+	const runtime = readRuntimeConfig().config.logLevel;
+	if (runtime) return runtime;
+
 	if (env.VITE_LOG_LEVEL) return env.VITE_LOG_LEVEL;
 	return import.meta.env.PROD ? "warn" : "debug";
 }

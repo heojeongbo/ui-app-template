@@ -44,7 +44,7 @@ const DEFINITE_FAILURE_CODES: ReadonlySet<Code> = new Set([
  * both describe a request the server was willing to serve and could not finish
  * right now, and both are the classic "retry and it works" cases.
  */
-export function isDefiniteFailure(error: unknown): boolean {
+export function isDefiniteFailure(error: unknown): error is ConnectError {
 	if (!(error instanceof ConnectError)) return false;
 	return DEFINITE_FAILURE_CODES.has(error.code);
 }
@@ -95,6 +95,7 @@ export function shouldRetry(failureCount: number, error: unknown, max = 2) {
  */
 export function toUserMessage(error: unknown, fallback: string): string {
 	if (!isDefiniteFailure(error)) return fallback;
-	const message = (error as ConnectError).rawMessage.trim();
+	// Narrowed by `isDefiniteFailure` above — no cast needed.
+	const message = error.rawMessage.trim();
 	return message.length > 0 ? message : fallback;
 }

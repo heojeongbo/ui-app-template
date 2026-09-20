@@ -1,6 +1,6 @@
 import type { Interceptor, Transport } from "@connectrpc/connect";
 import { createTransport } from "@template/core/api";
-import { env } from "@template/core/config";
+import { env, readRuntimeConfig } from "@template/core/config";
 
 import { resetClients } from "./client";
 
@@ -50,7 +50,12 @@ export function configureTransport(next: TransportConfig): void {
 
 export function getTransport(): Transport {
 	instance ??= createTransport({
-		baseUrl: env.VITE_API_BASE_URL,
+		// Runtime beats build-time. `VITE_API_BASE_URL` is inlined by the
+		// bundler, so without this line `docker run -e APP_API_BASE_URL=…`
+		// writes config.js, the app parses it, and every RPC still goes to
+		// whatever origin the image was built against — with the container log,
+		// DevTools and the config file all reporting success.
+		baseUrl: readRuntimeConfig().config.apiBaseUrl ?? env.VITE_API_BASE_URL,
 		protocol: env.VITE_API_PROTOCOL,
 		onUnauthenticated: config.onUnauthenticated,
 		interceptors: config.interceptors ?? [],

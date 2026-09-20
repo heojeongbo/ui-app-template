@@ -36,6 +36,11 @@ it, say which step, paste the output, and say what you tried.
    keeping the numbers.
 5. Add the route under `src/routes/`, thin: path, zod search, guard, loader,
    `component`.
+6. Add it to the nav: an entry in `apps/web/src/widgets/app-shell/nav-items.ts`
+   AND an icon in the `ICONS` map in `app-shell.tsx`. Note the asymmetry —
+   *removing* a route breaks `linkOptions()` at compile time, but *adding* a
+   screen has no signal at all, so a screen nobody can reach is the default
+   outcome of skipping this step.
 
 ## Adding a mutation
 

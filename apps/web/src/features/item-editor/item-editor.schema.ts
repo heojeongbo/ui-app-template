@@ -11,13 +11,17 @@ export type ItemEditorCopy = {
 };
 
 /**
- * `satisfies z.ZodType<…>` pins the form's shape against the generated request
- * type.
+ * The form shape is deliberately NOT the request shape.
  *
- * Without it the two drift silently: someone renames a proto field, the form
- * keeps submitting the old name, and the server quietly receives an empty
- * string for the new one. With it, regenerating the proto turns that into a
- * compile error in this file.
+ * `status` crosses as a string because a `<select>` has no other kind of
+ * value; it is converted back at the dialog's submit. So there is no
+ * `satisfies z.ZodType<CreateItemRequest>` here and there cannot be one.
+ *
+ * What actually guards against proto drift is one line down: `itemEditorDefaults`
+ * takes a generated `Item` and is annotated `: ItemEditorValues`, so a renamed
+ * or retyped field is a compile error in this file. An ADDED required field is
+ * not — that one is caught by the mutation's input type, which is derived from
+ * the generated request rather than hand-written.
  */
 export function itemEditorSchema(copy: ItemEditorCopy) {
 	return z.object({

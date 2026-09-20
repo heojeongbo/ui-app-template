@@ -1,5 +1,18 @@
 import { Code, ConnectError } from "@connectrpc/connect";
-import type { ServerFieldError } from "@template/design/ui/form";
+/**
+ * Restated here rather than imported from `@template/design`.
+ *
+ * Structural typing means this is the same type to every caller, and the
+ * import was the ONLY edge from core to design — four lines of tsconfig, Vite
+ * alias and package.json plumbing existing for one two-field shape, and it
+ * made `docs/ux/mutations.md`'s claim that "neither knows about the other"
+ * literally false. Core is now a leaf in both directions.
+ */
+export type ServerFieldError = {
+	/** The field path as the form library spells it: `"address.city"`. */
+	field: string;
+	message: string;
+};
 
 /**
  * Pulls `{ field, message }` pairs out of a transport error.
