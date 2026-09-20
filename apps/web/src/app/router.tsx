@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { createRouter } from "@tanstack/react-router";
+import { createRouter, type RouterHistory } from "@tanstack/react-router";
 
 import type { Session } from "@/entities/session";
 import { routeTree } from "@/routeTree.gen";
@@ -23,9 +23,19 @@ export type RouterContext = {
 	session: Session | null;
 };
 
-export function createAppRouter(queryClient: QueryClient) {
+/**
+ * `history` is injectable so a test can drive the real route tree with
+ * `createMemoryHistory`. Mutating it after construction via `router.update()`
+ * requires re-supplying the whole context, which is easy to get subtly wrong;
+ * an optional argument keeps one construction path.
+ */
+export function createAppRouter(
+	queryClient: QueryClient,
+	history?: RouterHistory,
+) {
 	return createRouter({
 		routeTree,
+		...(history ? { history } : {}),
 
 		// `session` is filled in by RouterProvider; `queryClient` never changes.
 		context: { queryClient, session: null },

@@ -76,7 +76,17 @@ export function SignInPage() {
 		<div className="flex min-h-svh items-center justify-center p-6">
 			<Card className="w-full max-w-sm">
 				<CardHeader>
-					<CardTitle>{signInContent.title}</CardTitle>
+					{/*
+						An `<h1>`, not a bare CardTitle. shadcn's CardTitle renders a
+						`<div>`, so a page whose only title is one has NO heading at
+						all — and heading navigation is the main way a screen-reader
+						user orients on a page. `asChild` is not available here, so
+						the element is supplied directly and CardTitle contributes
+						its styling.
+					*/}
+					<CardTitle>
+						<h1>{signInContent.title}</h1>
+					</CardTitle>
 					<CardDescription>{signInContent.description}</CardDescription>
 				</CardHeader>
 				<CardContent>

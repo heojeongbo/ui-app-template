@@ -1,7 +1,11 @@
 {
 	"compilerOptions": {
 		"target": "ES2022",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		// ES2023 for `Array.prototype.with` / `toSorted` / `findLast` — immutable
+		// array updates read far better than a spread-and-splice, and every
+		// runtime this template targets (Node 22+, current browsers) has them.
+		// `target` stays ES2022: lib says what exists, target says what to emit.
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"jsx": "react-jsx",
