@@ -29,8 +29,24 @@ const LOG_LEVELS = ["debug", "log", "info", "warn", "error"] as const;
 const booleanFlag = z.stringbool().optional();
 
 const envSchema = z.object({
-	/** Where RPCs go. Same-origin by default so the session cookie flows. */
-	VITE_API_BASE_URL: z.string().default("/api"),
+	/**
+	 * Where RPCs go. Same-origin by default so the session cookie flows.
+	 *
+	 * Blank-or-absent rather than `.default("/api")`, because `.default()` only
+	 * fires on `undefined` and the realistic mistake writes an empty string:
+	 * a `VITE_API_BASE_URL=` line with nothing after it, or a CI variable that
+	 * was never populated. That is not "use the default" — it makes every RPC
+	 * resolve against the current PAGE, so from `/items` the client posts to
+	 * `/items/example.v1.ItemService/ListItems` and 404s in a way that reads as
+	 * a routing problem rather than a configuration one.
+	 *
+	 * The trim is the same class of bug one step smaller: a trailing space in a
+	 * `.env` file is invisible and produces a URL nothing will match.
+	 */
+	VITE_API_BASE_URL: z
+		.string()
+		.optional()
+		.transform((value) => value?.trim() || "/api"),
 
 	VITE_API_PROTOCOL: z.enum(["connect", "grpc-web"]).default("connect"),
 

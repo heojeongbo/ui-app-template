@@ -61,12 +61,20 @@ if (runtime.error) {
 	});
 }
 if (runtime.config.theme) {
-	const { unknown } = injectThemeTokens(runtime.config.theme);
+	const { unknown, rejected } = injectThemeTokens(runtime.config.theme);
 	if (unknown.length > 0) {
 		// A key the design system does not recognise is a colour that silently
 		// does not change — indistinguishable from one that was already right.
 		createScopedLogger("App").warn("unknown theme tokens in config.js", {
 			unknown,
+		});
+	}
+	if (rejected.length > 0) {
+		// Reported apart from `unknown` because the fix is different: this is a
+		// malformed VALUE, not a stale key. A value containing `}` would end its
+		// own CSS rule early and let whatever follows become top-level styles.
+		createScopedLogger("App").warn("unsafe theme token values in config.js", {
+			rejected,
 		});
 	}
 }

@@ -31,13 +31,40 @@ export type InjectResult = {
 	 * ignored colour is very hard to tell from a colour that did not change.
 	 */
 	unknown: string[];
+
+	/**
+	 * Known tokens whose VALUE was refused. Separate from `unknown` because the
+	 * two need different fixes: an unknown key is usually a stale name, while a
+	 * rejected value is a malformed one.
+	 */
+	rejected: string[];
 };
+
+/**
+ * A value that cannot escape the declaration it is written into.
+ *
+ * This sheet is built by concatenation, so `}` in a value ends the rule early
+ * and everything after it becomes top-level CSS:
+ *
+ *     { primary: "red} body{display:none" }
+ *     -> :root{--primary: red} body{display:none;}
+ *
+ * A blank page, from what was meant to be a brand colour. Not XSS — custom
+ * properties cannot run script, and the sheet is set with `textContent`, so
+ * even `</style>` is inert — but an accident that renders nothing is not an
+ * acceptable failure just because it was an accident.
+ *
+ * Refused rather than escaped: no legitimate token value contains these, so
+ * sanitising would only hide the mistake from whoever has to fix it.
+ */
+const UNSAFE_VALUE = /[{};<>]/;
 
 function ruleFor(selector: string, tokens: ThemeTokens | undefined) {
 	const applied: string[] = [];
 	const unknown: string[] = [];
+	const rejected: string[] = [];
 
-	if (!tokens) return { css: "", applied, unknown };
+	if (!tokens) return { css: "", applied, unknown, rejected };
 
 	const declarations: string[] = [];
 	for (const [key, value] of Object.entries(tokens)) {
@@ -46,16 +73,24 @@ function ruleFor(selector: string, tokens: ThemeTokens | undefined) {
 			unknown.push(key);
 			continue;
 		}
-		// Values are NOT escaped or parsed. This comes from your own backend,
-		// and CSS custom properties cannot break out of a declaration into
-		// script — but a hostile value can still make the UI unreadable, so do
-		// not wire this to untrusted input.
+		// The gate, checked here rather than only at the caller because this is
+		// the function that does the concatenation — see `UNSAFE_VALUE`. One bad
+		// value costs its own token, not the whole palette.
+		if (UNSAFE_VALUE.test(value)) {
+			rejected.push(key);
+			continue;
+		}
 		declarations.push(`--${key}: ${value};`);
 		applied.push(key);
 	}
 
-	if (declarations.length === 0) return { css: "", applied, unknown };
-	return { css: `${selector}{${declarations.join("")}}`, applied, unknown };
+	if (declarations.length === 0) return { css: "", applied, unknown, rejected };
+	return {
+		css: `${selector}{${declarations.join("")}}`,
+		applied,
+		unknown,
+		rejected,
+	};
 }
 
 export function injectThemeTokens(override: ThemeOverride): InjectResult {
@@ -65,6 +100,7 @@ export function injectThemeTokens(override: ThemeOverride): InjectResult {
 	const result: InjectResult = {
 		applied: [...light.applied, ...dark.applied],
 		unknown: [...new Set([...light.unknown, ...dark.unknown])],
+		rejected: [...new Set([...light.rejected, ...dark.rejected])],
 	};
 
 	if (typeof document === "undefined") return result;

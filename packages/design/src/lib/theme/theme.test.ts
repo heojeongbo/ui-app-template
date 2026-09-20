@@ -23,6 +23,38 @@ describe("injectThemeTokens", () => {
 		expect(sheet()).toContain(".dark{--primary: oklch(0.75 0.18 260);}");
 	});
 
+	it("refuses a value that would escape its own declaration", () => {
+		// The sheet is built by string concatenation, so a `}` in a value ends
+		// the rule early and everything after it becomes top-level CSS. This
+		// exact value produced `:root{--primary: red} body{display:none;}` — a
+		// blank page from what was meant to be a brand colour.
+		const result = injectThemeTokens({
+			light: { primary: "red} body{display:none", secondary: "blue" },
+		});
+
+		expect(result.rejected).toEqual(["primary"]);
+		expect(sheet()).not.toContain("display:none");
+		// One bad value costs its own token, not the whole palette — a tenant
+		// with nine good colours and one typo should still be branded.
+		expect(result.applied).toContain("secondary");
+		expect(sheet()).toContain("--secondary: blue;");
+	});
+
+	it("separates a rejected value from an unrecognised key", () => {
+		// Different fixes: an unknown key is usually a stale or misspelled name,
+		// a rejected value is a malformed one. Reporting both as "unknown" sends
+		// whoever is debugging to the wrong half of their config.
+		const result = injectThemeTokens({
+			// `as never` for the same reason as the unknown-key test below: the
+			// type forbids what the runtime must survive, because this arrives as
+			// JSON from config.js rather than as a literal.
+			light: { notAToken: "red", primary: "a;b" } as never,
+		});
+
+		expect(result.unknown).toEqual(["notAToken"]);
+		expect(result.rejected).toEqual(["primary"]);
+	});
+
 	it("goes in <head>, not <body>", () => {
 		injectThemeTokens({ light: { primary: "red" } });
 		// A stylesheet in the body is valid but applies after first paint,

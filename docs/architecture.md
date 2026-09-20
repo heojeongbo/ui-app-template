@@ -101,6 +101,56 @@ pagination and sort live in zod-validated search params, so a view is
 bookmarkable, shareable, and survives a reload — and the page needs no state of
 its own. See [routing.md](routing.md).
 
+## Validation boundaries
+
+TypeScript is erased at runtime, so a type is a claim about data the compiler
+saw the construction of. Anywhere else, the claim is unchecked — and the ones
+that bite are never the obvious ones, because the obvious ones look untrusted.
+
+**A boundary is anywhere data the app did not itself construct becomes a typed
+value.** Each has exactly one place that validates it:
+
+| Crossing in | Validated at |
+| --- | --- |
+| Search params | `validateSearch` — `shared/lib/search` helpers |
+| Path params | `params: { parse }` on the route |
+| `localStorage` (a persisted store) | `persistSchema` — required by `createAppStore` |
+| `import.meta.env` | `packages/core/src/config/env.ts`, at module load |
+| `window.__APP_CONFIG__` | `readRuntimeConfig`, per field |
+| RPC responses | protobuf-es decoding — **not** zod, see below |
+| `ConnectError` details / message | `packages/core/src/api/field-errors.ts` |
+
+Four rules, each one a bug that happened here:
+
+1. **Degrade, never throw.** A URL, a `config.js` and a `localStorage` entry are
+   all hand-editable and all outlive the code reading them. `?page=abc` shows
+   page 1; a corrupt session signs you out; a bad `logLevel` is dropped. A
+   router error screen is a worse answer than a default.
+
+2. **Per field, not all-or-nothing.** One bad key must not discard the good
+   ones. A typo'd `logLevel` used to throw away `apiBaseUrl`, and the app
+   silently talked to the build-time backend — an outage that presents as a
+   code bug.
+
+3. **Falling back must be loud.** Every rule above is silent by construction,
+   which is the trade that makes them safe. Pay for it with a `warn` naming
+   what was dropped. A filter that vanishes with no console output is
+   indistinguishable from a filter that was never applied.
+
+4. **The value is not a string by the time zod sees it.** The router
+   JSON-parses search params *before* `validateSearch` runs, so `?q=12345`
+   arrives as a number and `?debug=true` as a boolean. A schema written for the
+   spelling rejects the value, `.catch()` swallows it, and the param
+   disappears. See the header of `shared/lib/search/search.ts`.
+
+**Where zod does not belong.** Protobuf responses are already validated —
+`fromJson` is a decoder with the schema compiled in, and a second zod pass
+would duplicate the `.proto` in TypeScript where it can drift. The two things
+protobuf does *not* give you are worth knowing instead: a proto3 `optional`
+message field can be absent, and proto3 enums are **open**, so a number your
+build has never heard of is a legal value. Handle both with a `default:` branch
+that resolves to something real, not with a parser.
+
 ## Aliases
 
 Every alias must appear in **three places, together**:

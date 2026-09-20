@@ -102,10 +102,37 @@ so the dev server stays green while CI goes red.
 what the code does — what goes wrong without it. Those comments are most of
 what this template is.
 
+**Data the app did not construct gets validated where it enters, degrades to a
+default instead of throwing, and says so.** Search params, path params,
+persisted stores, `import.meta.env`, `window.__APP_CONFIG__`. Per field, so one
+bad key cannot discard the good ones. Protobuf responses are the exception —
+already decoded against the schema, and a second zod pass would duplicate the
+`.proto` where it can drift. See
+[docs/architecture.md](docs/architecture.md#validation-boundaries).
+
+**No `any`, and the compiler is set as strict as this ecosystem allows.**
+`noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature` and friends are
+on; `exactOptionalPropertyTypes` is the one declined, because Radix and TanStack
+declare `prop?: T` and shadcn CLI output would never type-check. The bans on
+`enum` / `namespace` / parameter properties live in Biome rather than tsc,
+because compiler options cannot be scoped to a glob and protoc-gen-es emits
+real enums.
+
 ## Traps that have already bitten
 
+- The router **JSON-parses search params before `validateSearch` runs**, so
+  `?q=12345` is a number and `?debug=true` a boolean. A schema written for the
+  string spelling rejects them, `.catch()` swallows it, and the param silently
+  disappears.
 - `z.coerce.boolean()` reads `"false"` and `"0"` as **true**. Use
   `z.stringbool()` / `boolParam()`.
+- `.default()` fires only on `undefined`, so a blank `VITE_FOO=` survives as
+  `""`. `??` is nullish-only, so a proto enum's `0` never reaches its fallback.
+- `ConnectError.details` holds `IncomingDetail`, whose `value` is raw bytes —
+  the decoded payload is in `debug`.
+- zustand builds its persist options as `{ version: 0, ...yours }`, so passing
+  `version: undefined` explicitly overrides the default and every rehydrate
+  takes the migrate path.
 - `Timestamp.seconds` is a **bigint**; the arithmetic throws. Use `toDate` /
   `toMillis` from `@template/core/proto`.
 - Vite matches `resolve.alias` by **prefix, in order** — a bare `"@"` listed
