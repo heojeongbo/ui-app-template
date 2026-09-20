@@ -26,7 +26,9 @@ export const signInContent = {
 	// Fed to zod, so plain `string` — see the Copy prop shapes in docs/ux/copy.md.
 	usernameRequired: "Enter your username.",
 	passwordRequired: "Enter your password.",
-	passwordTooShort: "Your password is at least 8 characters.",
+	// No "too short" message here on purpose. A length rule belongs to the
+	// screen that CREATES a password, not the one that checks it — see
+	// signin.schema.ts.
 
 	// A definite refusal. The server said no, and said why.
 	rejected: "That username and password do not match.",

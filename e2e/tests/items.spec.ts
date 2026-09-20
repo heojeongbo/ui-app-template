@@ -43,11 +43,15 @@ test.describe("auth", () => {
 	test("an invalid form reports the problem on the field", async ({ page }) => {
 		await page.goto("/signin");
 		await page.getByLabel("Username").fill("operator");
-		await page.getByLabel("Password").fill("short");
+		// Left blank deliberately. This used to submit a short-but-present
+		// password and assert a "at least 8 characters" message, which encoded a
+		// REGISTRATION policy into a sign-in screen — it locked out anyone whose
+		// password predated the rule, before the server was ever asked. Presence
+		// is the only thing this form gets to have an opinion about.
 		await page.getByRole("button", { name: "Sign in" }).click();
 
 		const alert = page.getByRole("alert");
-		await expect(alert).toHaveText(/at least 8 characters/);
+		await expect(alert).toHaveText(/Enter your password/);
 
 		// The control points at the message, which is what makes it reachable
 		// to a screen reader. Red text alone announces nothing.
@@ -57,6 +61,23 @@ test.describe("auth", () => {
 		const alertId = await alert.getAttribute("id");
 		expect(alertId).toBeTruthy();
 		await expect(password).toHaveAttribute("aria-describedby", alertId ?? "");
+	});
+
+	test("accepts a short password rather than second-guessing the server", async ({
+		page,
+	}) => {
+		await page.goto("/signin");
+		await page.getByLabel("Username").fill("operator");
+		await page.getByLabel("Password").fill("x");
+		await page.getByRole("button", { name: "Sign in" }).click();
+
+		// One character, and the form does not argue. Whether the credential is
+		// good is the server's answer to give — this demo's stand-in accepts it,
+		// so we leave sign-in for the default landing page. The assertion that
+		// matters is the absence of a client-side length complaint blocking the
+		// request at all.
+		await expect(page).toHaveURL("/");
+		await expect(page.getByRole("alert")).toHaveCount(0);
 	});
 });
 

@@ -16,16 +16,31 @@ import { z } from "zod";
 export type SignInCopy = {
 	usernameRequired: string;
 	passwordRequired: string;
-	passwordTooShort: string;
 };
 
+/**
+ * **A sign-in form validates presence, never policy.**
+ *
+ * This used to carry `.min(8, passwordTooShort)`, and it was wrong twice.
+ *
+ * Wrong in principle: a length minimum is a *registration* rule. Enforcing it
+ * here locks out anyone whose password predates the current policy — the form
+ * refuses before the server is ever asked, so the one account that most needs
+ * to get in cannot, and no server-side migration can rescue it. It also states
+ * the policy to anyone who loads the page.
+ *
+ * Wrong in fact: `.min(8).min(1)` made the second message unreachable. zod
+ * does not short-circuit a chain, so `""` produced BOTH issues in chain order
+ * and the field renders only the first — someone submitting an empty password
+ * was told it was "too short", which is both unhelpful and untrue.
+ *
+ * Length, complexity and reuse belong to whatever screen CREATES a password,
+ * where the rule is a promise to the user rather than a gate in front of them.
+ */
 export function signInSchema(copy: SignInCopy) {
 	return z.object({
 		username: z.string().min(1, copy.usernameRequired),
-		password: z
-			.string()
-			.min(8, copy.passwordTooShort)
-			.min(1, copy.passwordRequired),
+		password: z.string().min(1, copy.passwordRequired),
 	});
 }
 

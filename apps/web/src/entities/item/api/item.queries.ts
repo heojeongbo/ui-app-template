@@ -1,3 +1,4 @@
+import { Code, ConnectError } from "@connectrpc/connect";
 import { queryOptions } from "@tanstack/react-query";
 import { proto } from "@template/interfaces";
 
@@ -66,6 +67,25 @@ export const itemQueries = {
 			queryKey: [...itemQueries.details(), id] as const,
 			queryFn: async ({ signal }) => {
 				const response = await client().getItem({ id }, { signal });
+
+				// Not defensive padding. `GetItemResponse.item` is a proto3
+				// message field, so it is ALWAYS optional on the wire regardless
+				// of what the service means — `response.item` is `Item |
+				// undefined` and a server that answers OK with an empty body
+				// type-checks fine.
+				//
+				// Returning it unguarded hands `undefined` to TanStack Query,
+				// which refuses it: "Query data cannot be undefined." That error
+				// names the query key and nothing else, so the screen shows a
+				// generic failure for what is really a missing row.
+				//
+				// Raised as `NotFound` so it flows through the same taxonomy as a
+				// server-sent one — `isDefiniteFailure` classifies it, and the
+				// caller's not-found branch handles both without a special case.
+				if (!response.item) {
+					throw new ConnectError(`item ${id} not found`, Code.NotFound);
+				}
+
 				return response.item;
 			},
 			// A detail page with no id is a bug in the caller, not a request to
