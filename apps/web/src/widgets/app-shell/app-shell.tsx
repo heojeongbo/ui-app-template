@@ -3,8 +3,8 @@ import { Button } from "@template/design/ui/button";
 import { Separator } from "@template/design/ui/separator";
 import { BoxIcon, HomeIcon, LogOutIcon, MoonIcon, SunIcon } from "lucide-react";
 
-import { useThemeStore } from "@/app/providers/theme-provider";
 import { useSessionStore } from "@/entities/session";
+import { useThemeStore } from "@/shared/lib/theme";
 
 import { NAV_ITEMS } from "./nav-items";
 

@@ -1,13 +1,19 @@
 import { RouterProvider } from "@tanstack/react-router";
-import { resolveLogLevel } from "@template/core/config";
-import { exposeLoggingDevtools, initLogging } from "@template/core/logger";
+import { env, resolveLogLevel } from "@template/core/config";
+import {
+	createScopedLogger,
+	exposeLoggingDevtools,
+	initLogging,
+} from "@template/core/logger";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import { mockInterceptors } from "@/app/mocks";
 import { AppProviders } from "@/app/providers/app-providers";
 import { queryClient } from "@/app/providers/query-client";
 import { createAppRouter } from "@/app/router";
-import { useSessionStore } from "@/entities/session";
+import { sessionStore, useSessionStore } from "@/entities/session";
+import { configureTransport } from "@/shared/api";
 import { Toaster } from "@/shared/ui/toaster";
 
 import "@/app/style.css";
@@ -27,6 +33,42 @@ if (import.meta.env.DEV) {
 	// bug beats redeploying with a changed constant.
 	exposeLoggingDevtools();
 }
+
+/**
+ * Compose the transport here, in `app`, and inject it downward.
+ *
+ * The two things it needs — how to sign out, and which RPCs are mocked — are
+ * app-layer knowledge, and `shared/api` must not reach up for them. It builds
+ * lazily on the first real request, which happens long after this line.
+ */
+const mocksEnabled = env.VITE_ENABLE_MOCKS === true;
+
+if (mocksEnabled) {
+	// Gated on the explicit flag ALONE, not on `import.meta.env.DEV`.
+	//
+	// Requiring a dev build sounds safer and makes the flag useless for its
+	// main job: the e2e suite runs against a real production bundle, because
+	// that is what ships. Adding `&& DEV` silently disabled every mock there,
+	// and the whole suite failed with HTTP 404s that looked like a Playwright
+	// problem.
+	//
+	// The safety is that the flag is off unless someone sets it, plus this
+	// warning — which is unconditional and at `warn`, so it survives the
+	// production log level and is the first thing in the console if a build
+	// ever ships with it on.
+	createScopedLogger("App").warn(
+		"RPC mocks are ENABLED. No request reaches a server; every response is a fixture.",
+	);
+}
+
+configureTransport({
+	onUnauthenticated: () => {
+		// Clearing the session is enough — the router's guard re-runs because the
+		// store changed, and performs the navigation itself.
+		sessionStore.signOut();
+	},
+	interceptors: mocksEnabled ? mockInterceptors : [],
+});
 
 const router = createAppRouter(queryClient);
 

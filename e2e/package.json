@@ -1,0 +1,21 @@
+{
+	"name": "@template/e2e",
+	"private": true,
+	"type": "module",
+	"version": "0.0.0",
+	"scripts": {
+		"test": "playwright test",
+		"test:ui": "playwright test --ui",
+		"report": "playwright show-report",
+		"install-browsers": "playwright install --with-deps chromium",
+		"type:check": "tsc --noEmit",
+		"lint": "biome lint",
+		"check": "biome check --write"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.14",
+		"@playwright/test": "1.63.0",
+		"@types/node": "^24.3.0",
+		"typescript": "^7.0.2"
+	}
+}

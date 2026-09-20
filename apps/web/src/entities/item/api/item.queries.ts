@@ -1,10 +1,14 @@
-import { createClient } from "@connectrpc/connect";
 import { queryOptions } from "@tanstack/react-query";
 import { proto } from "@template/interfaces";
 
-import { transport } from "@/app/providers/transport";
+import { getClient } from "@/shared/api";
 
-const client = createClient(proto.example_v1.ItemService, transport);
+/**
+ * Resolved per call, not at module scope: the transport is configured by `app`
+ * at startup, and a client built while this module is still evaluating would
+ * capture an unconfigured one. `getClient` memoises, so this is a map lookup.
+ */
+const client = () => getClient(proto.example_v1.ItemService);
 
 export type ItemListParams = {
 	page: number;
@@ -40,7 +44,7 @@ export const itemQueries = {
 		queryOptions({
 			queryKey: [...itemQueries.lists(), params] as const,
 			queryFn: async ({ signal }) => {
-				const response = await client.listItems(
+				const response = await client().listItems(
 					{
 						page: params.page,
 						pageSize: params.pageSize,
@@ -61,7 +65,7 @@ export const itemQueries = {
 		queryOptions({
 			queryKey: [...itemQueries.details(), id] as const,
 			queryFn: async ({ signal }) => {
-				const response = await client.getItem({ id }, { signal });
+				const response = await client().getItem({ id }, { signal });
 				return response.item;
 			},
 			// A detail page with no id is a bug in the caller, not a request to

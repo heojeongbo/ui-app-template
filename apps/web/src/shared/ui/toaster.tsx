@@ -1,6 +1,6 @@
 import { Toaster as DesignToaster } from "@template/design/ui/sonner";
 
-import { useResolvedTheme } from "@/app/providers/theme-provider";
+import { useResolvedTheme } from "@/shared/lib/theme";
 
 /**
  * The app's Toaster: the design system's, wired to this app's theme.

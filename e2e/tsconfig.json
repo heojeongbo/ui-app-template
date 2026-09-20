@@ -1,0 +1,11 @@
+{
+	// Standalone: the e2e suite runs in Node against a built app, not in the
+	// browser bundle, and it must not drag the app's DOM lib or path aliases
+	// into its own type space.
+	"extends": "../tsconfig.base.json",
+	"compilerOptions": {
+		"types": ["node"],
+		"lib": ["ES2023"]
+	},
+	"include": ["tests", "playwright.config.ts", "fixtures"]
+}

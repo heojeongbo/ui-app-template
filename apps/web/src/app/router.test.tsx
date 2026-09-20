@@ -7,18 +7,26 @@
  * for one frame, a search param that does not survive a round-trip, a default
  * that leaks into every URL.
  */
-import { create } from "@bufbuild/protobuf";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { createQueryClient } from "@template/core/query";
-import { proto } from "@template/interfaces";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { buildItems } from "@/app/mocks";
+import { mockInterceptors, resetItemStore } from "@/app/mocks";
 import { createAppRouter } from "@/app/router";
-import { itemQueries, statusFromFilter } from "@/entities/item";
 import type { Session } from "@/entities/session";
+import { configureTransport } from "@/shared/api";
+
+/**
+ * The real mock interceptors, not a seeded cache. That makes these tests cover
+ * the whole chain — route → loader → queryClient → transport → interceptor →
+ * protobuf → page — which is the part no unit test reaches.
+ */
+beforeEach(() => {
+	resetItemStore();
+	configureTransport({ interceptors: mockInterceptors });
+});
 
 afterEach(cleanup);
 
@@ -27,18 +35,15 @@ const SESSION: Session = { userId: "u1", displayName: "Test" };
 function mount({
 	path,
 	session = null,
-	seed,
 }: {
 	path: string;
 	session?: Session | null;
-	seed?: (queryClient: ReturnType<typeof createQueryClient>) => void;
 }) {
 	const queryClient = createQueryClient({
 		// Surface a loader failure as a test failure rather than as a retry loop
 		// that times out with no explanation.
 		defaultOptions: { queries: { retry: false } },
 	});
-	seed?.(queryClient);
 
 	const router = createAppRouter(
 		queryClient,
@@ -52,28 +57,6 @@ function mount({
 	);
 
 	return { router, queryClient };
-}
-
-/** Pre-seed the list so the loader resolves without a transport. */
-function seedItems(pageSize = 20, status = "all" as const, page = 1) {
-	return (queryClient: ReturnType<typeof createQueryClient>) => {
-		const options = itemQueries.list({
-			page,
-			pageSize,
-			status: statusFromFilter(status),
-			query: undefined,
-		});
-		// A real message, not a plain object: `setQueryData` is typed against
-		// the generated response, and a structural stand-in would let the seed
-		// drift from what the transport actually returns.
-		queryClient.setQueryData(
-			options.queryKey,
-			create(proto.example_v1.ListItemsResponseSchema, {
-				items: buildItems(5),
-				total: 5,
-			}),
-		);
-	};
 }
 
 describe("auth guard", () => {
@@ -110,16 +93,22 @@ describe("auth guard", () => {
 		expect(screen.queryByText("Everything in the catalogue.")).toBeNull();
 	});
 
-	it("lets a signed-in visit through", async () => {
-		const { router } = mount({
-			path: "/items",
-			session: SESSION,
-			seed: seedItems(),
-		});
+	it("lets a signed-in visit through, and the data actually arrives", async () => {
+		const { router } = mount({ path: "/items", session: SESSION });
 
 		await waitFor(() => {
 			expect(router.state.location.pathname).toBe("/items");
 		});
+
+		// Rows from the mock, which means the whole chain ran: loader →
+		// ensureQueryData → queryFn → transport → interceptor → protobuf → page.
+		// Asserting only on the pathname would pass with an empty screen.
+		await waitFor(
+			() => {
+				expect(screen.getByText("1–20 of 47")).toBeTruthy();
+			},
+			{ timeout: 3000 },
+		);
 	});
 
 	it("bounces an already-signed-in user away from sign-in", async () => {
@@ -136,7 +125,6 @@ describe("search params", () => {
 		const { router } = mount({
 			path: "/items?page=2&pageSize=50&status=active",
 			session: SESSION,
-			seed: seedItems(50, "all", 2),
 		});
 
 		await waitFor(() => {
@@ -159,7 +147,6 @@ describe("search params", () => {
 			// on it alone would only prove the URL is empty.
 			path: "/items?page=abc&status=deleted&pageSize=50",
 			session: SESSION,
-			seed: seedItems(50),
 		});
 
 		await waitFor(() => {
@@ -174,7 +161,6 @@ describe("search params", () => {
 		const { router } = mount({
 			path: "/items?page=1&pageSize=20&status=all",
 			session: SESSION,
-			seed: seedItems(),
 		});
 
 		await waitFor(() => {

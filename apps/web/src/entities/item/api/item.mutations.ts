@@ -23,7 +23,7 @@ export function useCreateItem() {
 			name: string;
 			description: string;
 			status: proto.example_v1.ItemStatus;
-		}) => itemClient.createItem(input),
+		}) => itemClient().createItem(input),
 	});
 }
 
@@ -39,7 +39,7 @@ export function useUpdateItem() {
 			 */
 			updatePaths: string[];
 		}) =>
-			itemClient.updateItem({
+			itemClient().updateItem({
 				id: input.id,
 				item: input.item as proto.example_v1.Item,
 				updateMask: { paths: input.updatePaths },
@@ -49,6 +49,6 @@ export function useUpdateItem() {
 
 export function useDeleteItem() {
 	return useMutation({
-		mutationFn: (input: { id: string }) => itemClient.deleteItem(input),
+		mutationFn: (input: { id: string }) => itemClient().deleteItem(input),
 	});
 }
