@@ -3,7 +3,9 @@ import {
 	type StatusFilter,
 	statusFromFilter,
 } from "@/entities/item";
-import { clampPage } from "@/shared/lib/search";
+import { clampPage, type PageSize } from "@/shared/lib/search";
+
+import type { ItemsSearch } from "./items.search";
 
 /**
  * Every decision the items screen makes about its own URL state.
@@ -17,12 +19,9 @@ import { clampPage } from "@/shared/lib/search";
  * See docs/screens/items.md for the scenarios these satisfy.
  */
 
-export type ItemsSearch = {
-	page: number;
-	pageSize: number;
-	status: StatusFilter;
-	q?: string;
-};
+// Re-exported, not re-declared. `ItemsSearch` is inferred from
+// `itemsSearchSchema` — see items.search.ts for the drift that taught us why.
+export type { ItemsSearch } from "./items.search";
 
 /**
  * S1 — changing a filter returns to page 1.
@@ -62,7 +61,7 @@ export function applyPage(search: ItemsSearch, page: number): ItemsSearch {
  */
 export function applyPageSize(
 	search: ItemsSearch,
-	pageSize: number,
+	pageSize: PageSize,
 ): ItemsSearch {
 	const firstRow = (search.page - 1) * search.pageSize;
 	return { ...search, pageSize, page: Math.floor(firstRow / pageSize) + 1 };

@@ -22,7 +22,7 @@ const schema = z.object({
 });
 
 function build(key: string) {
-	return createAppStore<State>(
+	return createAppStore<State>()(
 		(set) => ({ user: null, touch: () => set({}) }),
 		{
 			name: key,
@@ -90,7 +90,7 @@ describe("createAppStore persistence", () => {
 		// localStorage only ever holds what the current build just wrote, so an
 		// unvalidated store looks correct right up until it ships.
 		expect(() =>
-			createAppStore<State>((set) => ({ user: null, touch: () => set({}) }), {
+			createAppStore<State>()((set) => ({ user: null, touch: () => set({}) }), {
 				name: "unguarded",
 				persistKey: "unguarded",
 				partialize: (s) => ({ user: s.user }),
@@ -100,7 +100,7 @@ describe("createAppStore persistence", () => {
 
 	it("still refuses a persisted store with no partialize", () => {
 		expect(() =>
-			createAppStore<State>((set) => ({ user: null, touch: () => set({}) }), {
+			createAppStore<State>()((set) => ({ user: null, touch: () => set({}) }), {
 				name: "whole",
 				persistKey: "whole",
 				persistSchema: schema,
@@ -126,7 +126,7 @@ describe("createAppStore persistence", () => {
 		// fires when the integer differs, and that integer sits in the same
 		// untrusted blob as the data.
 		seed("stale", { user: { id: "u1", name: "Ada" } }, 0);
-		const store = createAppStore<State>(
+		const store = createAppStore<State>()(
 			(set) => ({ user: null, touch: () => set({}) }),
 			{
 				name: "stale",
@@ -139,11 +139,41 @@ describe("createAppStore persistence", () => {
 		expect(store.getState().user).toBeNull();
 	});
 
+	it("falls back loudly when the schema demands a field partialize never writes", () => {
+		// The residual gap in the `persistSchema` ↔ `partialize` type tie, pinned
+		// so it is a known behaviour rather than a surprise.
+		//
+		// A schema whose field types contradict `partialize` is a compile error.
+		// One that requires an EXTRA field is not — structurally, a wider object
+		// is still assignable to a narrower one — so this only shows up here. It
+		// rejects every rehydrate, which means the store uses its defaults
+		// forever; the warning is the difference between that being debuggable
+		// and being a mystery.
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		seed("mismatch", { user: { id: "u1", name: "Ada" } });
+
+		const store = createAppStore<State>()(
+			(set) => ({ user: null, touch: () => set({}) }),
+			{
+				name: "mismatch",
+				persistKey: "mismatch",
+				partialize: (s) => ({ user: s.user }),
+				persistSchema: z.object({
+					user: z.object({ id: z.string(), name: z.string() }).nullable(),
+					neverWritten: z.number(),
+				}),
+			},
+		);
+
+		expect(store.getState().user).toBeNull();
+		expect(warn).toHaveBeenCalled();
+	});
+
 	it("does not validate a store that never persists", () => {
 		// No storage boundary, nothing to distrust — demanding a schema here
 		// would be ceremony, and the factory is what decides that, not the call
 		// site.
-		const store = createAppStore<State>(
+		const store = createAppStore<State>()(
 			(set) => ({ user: null, touch: () => set({}) }),
 			{ name: "ephemeral" },
 		);

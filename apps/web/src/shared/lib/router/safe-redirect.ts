@@ -1,5 +1,42 @@
 /**
+ * A path that has been through `isSafeRedirect`.
+ *
+ * A brand, because the check is worth nothing to the type system otherwise. A
+ * validated redirect and an arbitrary `string` from a query param are the same
+ * type without it, so swapping one for the other during a refactor is
+ * invisible — and this is the value whose whole job is to not be arbitrary.
+ *
+ * `HOME` below carries the only assertion that creates one. That assertion IS
+ * the brand's definition: every other `SafeRedirect` in the app comes from
+ * `isSafeRedirect` actually returning true.
+ */
+export type SafeRedirect = string & { readonly __safeRedirect: unique symbol };
+
+/** The fallback, and the one hand-made `SafeRedirect` in the codebase. */
+export const HOME = "/" as SafeRedirect;
+
+/**
+ * Where the brand's life ends.
+ *
+ * The router's `to` is a union of known route paths plus `string`, and it
+ * rejects a branded string — generic inference on `to` will not take a type it
+ * cannot match against the route tree. Widening is safe (it is narrowing that
+ * would not be), so this needs no assertion; it exists to say so once instead
+ * of at every navigation, and to keep the discharge searchable.
+ */
+export function toPath(target: SafeRedirect): string {
+	return target;
+}
+
+/**
  * Is this a redirect target we are willing to send a user to after sign-in?
+ *
+ * Returns a **type predicate**, not a `boolean`, and that is load-bearing:
+ * zod's `.refine` narrows its output only when handed a predicate
+ * (`v4/classic/schemas.d.ts:41` — `Ch extends (arg: any) => arg is infer R ?
+ * this & ZodType<R, …> : this`). Written as `=> boolean` the runtime check
+ * still ran, but `search.redirect` stayed a bare `string` and the type carried
+ * no evidence that anything had been checked.
  *
  * Only same-origin, absolute-path locations. Everything else is an
  * **open redirect**: a link to
@@ -20,7 +57,7 @@
  * - Anything not starting with `/` — a relative path resolves against whatever
  *   the current page happens to be, which is not a decision this should make.
  */
-export function isSafeRedirect(target: string): boolean {
+export function isSafeRedirect(target: string): target is SafeRedirect {
 	if (target.length === 0) return false;
 
 	// Must be an absolute path on this origin.

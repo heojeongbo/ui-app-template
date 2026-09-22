@@ -8,4 +8,5 @@ export {
 	querySearchSchema,
 	sortSearchSchema,
 	toOffset,
+	toPageSize,
 } from "./search";

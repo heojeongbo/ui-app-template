@@ -110,6 +110,11 @@ already decoded against the schema, and a second zod pass would duplicate the
 `.proto` where it can drift. See
 [docs/architecture.md](docs/architecture.md#validation-boundaries).
 
+**Where a schema exists, the type is `z.infer`'d from it.** A hand-written type
+beside a schema is two declarations of one shape, and they drift — silently,
+because the schema's `.catch()` keeps the runtime working while the type stops
+preventing anything.
+
 **No `any`, and the compiler is set as strict as this ecosystem allows.**
 `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature` and friends are
 on; `exactOptionalPropertyTypes` is the one declined, because Radix and TanStack
@@ -126,6 +131,13 @@ real enums.
   disappears.
 - `z.coerce.boolean()` reads `"false"` and `"0"` as **true**. Use
   `z.stringbool()` / `boolParam()`.
+- **`z.enum(values as [string, ...string[]])` infers `string`.** The output is
+  `T[number]`, so casting the tuple's elements to `string` erases the union
+  while the runtime check still passes — and every consumer then casts its way
+  back.
+- **`.refine()` narrows only when handed a type predicate.** `=> boolean`
+  leaves the output type untouched; `=> v is Safe` narrows it. Identical at
+  runtime.
 - `.default()` fires only on `undefined`, so a blank `VITE_FOO=` survives as
   `""`. `??` is nullish-only, so a proto enum's `0` never reaches its fallback.
 - `ConnectError.details` holds `IncomingDetail`, whose `value` is raw bytes —

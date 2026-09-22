@@ -9,7 +9,11 @@ import {
 import { useId } from "react";
 
 import { STATUS_FILTERS, type StatusFilter } from "@/entities/item";
-import { PAGE_SIZE_OPTIONS } from "@/shared/lib/search";
+import {
+	PAGE_SIZE_OPTIONS,
+	type PageSize,
+	toPageSize,
+} from "@/shared/lib/search";
 
 import { itemsContent } from "./items.content";
 import type { ItemsSearch } from "./items.filters";
@@ -18,7 +22,7 @@ type Props = {
 	search: ItemsSearch;
 	onStatusChange: (status: StatusFilter) => void;
 	onQueryChange: (value: string) => void;
-	onPageSizeChange: (size: number) => void;
+	onPageSizeChange: (size: PageSize) => void;
 };
 
 /**
@@ -94,7 +98,21 @@ export function ItemsFilterBar({
 				</label>
 				<Select
 					value={String(search.pageSize)}
-					onValueChange={(value) => onPageSizeChange(Number(value))}
+					// `toPageSize` and not `Number(value)`. A `<select>` value is a
+					// string, `Number()` returns a `number`, and `number` is not a
+					// `PageSize` — that gap is where `?pageSize=999` used to become
+					// reachable, type-check, and then get silently reset to 20 by the
+					// schema's `.catch()` one layer later.
+					//
+					// The `null` branch cannot fire: the options below are built from
+					// `PAGE_SIZE_OPTIONS`, so the only values this control emits are
+					// already page sizes. Ignoring it rather than defaulting keeps
+					// that invariant honest — if the options ever stop matching, the
+					// picker goes inert instead of quietly choosing for the user.
+					onValueChange={(value) => {
+						const size = toPageSize(value);
+						if (size !== null) onPageSizeChange(size);
+					}}
 				>
 					<SelectTrigger id={sizeId} className="w-24">
 						<SelectValue />

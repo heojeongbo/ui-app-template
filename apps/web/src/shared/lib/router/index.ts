@@ -1,1 +1,2 @@
-export { isSafeRedirect } from "./safe-redirect";
+export type { SafeRedirect } from "./safe-redirect";
+export { HOME, isSafeRedirect, toPath } from "./safe-redirect";

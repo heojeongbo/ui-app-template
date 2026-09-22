@@ -41,6 +41,24 @@ export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 export type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
 
 /**
+ * A `<select>` value narrowed back to a page size, or `null`.
+ *
+ * Exists because a DOM control's value is a string and `Number(value)` is a
+ * `number` — which is not a `PageSize`, and the gap is precisely where an
+ * out-of-range size used to slip through the type system and get silently
+ * reset by the schema's `.catch()` one layer later.
+ *
+ * Returns `null` rather than a default so the caller decides. A picker whose
+ * options came from `PAGE_SIZE_OPTIONS` can never produce `null`, and the
+ * branch is dead code by construction — which is the point: the impossible
+ * case is visible instead of assumed.
+ */
+export function toPageSize(value: string): PageSize | null {
+	const parsed = Number(value);
+	return PAGE_SIZE_OPTIONS.find((size) => size === parsed) ?? null;
+}
+
+/**
  * A URL boolean that means what it says.
  *
  * `z.stringbool()` accepts "true"/"false"/"1"/"0"/"yes"/"no" and — crucially —

@@ -27,7 +27,7 @@ type ThemeState = {
  * resolves to `"system"` forever. A theme system you cannot actually toggle is
  * worse than none.
  */
-export const useThemeStore = createAppStore<ThemeState>(
+export const useThemeStore = createAppStore<ThemeState>()(
 	(set) => ({
 		theme: "system",
 		setTheme: (theme) => set({ theme }),

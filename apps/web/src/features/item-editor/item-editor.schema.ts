@@ -1,8 +1,12 @@
 import { formOptions } from "@template/design/ui/form";
-import { proto } from "@template/interfaces";
+import type { proto } from "@template/interfaces";
 import { z } from "zod";
 
-import { SELECTABLE_STATUSES } from "@/entities/item";
+import {
+	defaultSelectableStatus,
+	STATUS_VALUES,
+	statusToValue,
+} from "@/entities/item";
 
 export type ItemEditorCopy = {
 	nameRequired: string;
@@ -31,7 +35,18 @@ export function itemEditorSchema(copy: ItemEditorCopy) {
 			.min(1, copy.nameRequired)
 			.max(120, copy.nameTooLong),
 		description: z.string().trim().max(2000, copy.descriptionTooLong),
-		status: z.enum(SELECTABLE_STATUSES.map(String) as [string, ...string[]]),
+		// `STATUS_VALUES` rather than `SELECTABLE_STATUSES.map(String) as
+		// [string, ...string[]]`, which is what used to be here and is the
+		// reason this comment exists.
+		//
+		// `z.enum` infers its output as `T[number]` (zod 4
+		// v4/classic/schemas.d.ts:610), so a tuple cast to `[string,
+		// ...string[]]` makes `T[number]` plain `string`. The runtime check
+		// still only accepted "1" | "2" | "3" — but every consumer was handed a
+		// `string`, and the dialog had to cast its way back with
+		// `Number(value.status) as ItemStatus`, which is unchecked in exactly
+		// the direction that matters.
+		status: z.enum(STATUS_VALUES),
 	});
 }
 
@@ -50,36 +65,16 @@ export function itemEditorDefaults(
 	return {
 		name: item?.name ?? "",
 		description: item?.description ?? "",
-		status: String(defaultStatus(item?.status)),
+		// Two named steps rather than `String(item?.status ?? DRAFT)`.
+		//
+		// `defaultSelectableStatus` holds the invariant worth carrying past this
+		// demo — **a form default must be a member of the set the control
+		// offers** — and `statusToValue` is the only place the DOM's
+		// string-shaped world is re-entered. Neither is inlineable without
+		// giving up the type: `String()` returns `string`, and `ItemEditorValues
+		// ["status"]` is now the union the schema actually accepts.
+		status: statusToValue(defaultSelectableStatus(item?.status)),
 	};
-}
-
-/**
- * The status a form should start on, for any status the server might send.
- *
- * Extracted because the obvious one-liner is wrong in a way that reads as
- * correct: `item?.status ?? ItemStatus.DRAFT` cannot fire for the one value it
- * looks like it handles. `??` is nullish-only, and `UNSPECIFIED` is `0` — so
- * `0 ?? DRAFT` is `0`, the defaults carry `status: "0"`, and `"0"` is not in
- * `SELECTABLE_STATUSES` (`["1","2","3"]`). The select renders with nothing
- * chosen and the form is invalid on a field the user never touched.
- *
- * Two ways in, neither exotic. A proto3 scalar field is absent on the wire
- * when it holds the zero value, so any server that has not set a status sends
- * one that decodes to `UNSPECIFIED`. And proto3 enums are OPEN: a server that
- * adds a status this build has never heard of decodes to that raw number,
- * which is equally absent from the selectable set.
- *
- * The invariant worth carrying past this demo: **a form default must be a
- * member of the set the control offers.** Anything outside it — the zero
- * value, a newer server's value — resolves to a real option here rather than
- * reaching the schema.
- */
-function defaultStatus(status: proto.example_v1.ItemStatus | undefined) {
-	const selectable: readonly number[] = SELECTABLE_STATUSES;
-	return status !== undefined && selectable.includes(status)
-		? status
-		: proto.example_v1.ItemStatus.DRAFT;
 }
 
 export function itemEditorFormOptions(

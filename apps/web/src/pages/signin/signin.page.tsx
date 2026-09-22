@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 
 import { useSessionStore } from "@/entities/session";
+import { toPath } from "@/shared/lib/router";
 
 import { signInContent } from "./signin.content";
 import { signInFormOptions } from "./signin.schema";
@@ -49,10 +50,12 @@ export function SignInPage() {
 				signIn({ userId: value.username, displayName: value.username });
 				log.info("signed in", { username: value.username });
 
-				// `redirect` is already validated by the route's zod schema, so
-				// there is nothing to check here. Doing it at the boundary means
-				// every consumer gets the safe value.
-				await navigate({ to: redirect, replace: true });
+				// `redirect` is already validated by the route's zod schema — and
+				// now says so in its type: it is a `SafeRedirect`, not a `string`.
+				// `toPath` is where that brand is discharged for the router, which
+				// wants a plain path. Nothing is re-checked here, which is the
+				// point of validating at the boundary.
+				await navigate({ to: toPath(redirect), replace: true });
 			} catch (error) {
 				log.error("sign-in failed", error);
 

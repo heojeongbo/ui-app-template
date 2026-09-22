@@ -25,7 +25,7 @@ type SessionState = {
  * copy is corrected the moment the server answers `Unauthenticated` and the
  * transport's auth interceptor calls `signOut`.
  */
-export const useSessionStore = createAppStore<SessionState>(
+export const useSessionStore = createAppStore<SessionState>()(
 	(set) => ({
 		session: null,
 		signIn: (session) => set({ session }),

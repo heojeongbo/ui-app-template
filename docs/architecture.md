@@ -120,6 +120,33 @@ value.** Each has exactly one place that validates it:
 | RPC responses | protobuf-es decoding — **not** zod, see below |
 | `ConnectError` details / message | `packages/core/src/api/field-errors.ts` |
 
+### The type is half the boundary
+
+A schema that checks the right thing at runtime can still hand every consumer a
+type that says nothing. That failure is quieter than no validation at all: the
+schema `.catch()`es the bad value, the app keeps working, and the type never
+stopped anyone from constructing the value in the first place.
+
+**Where a schema exists, the type is `z.infer`'d from it — never written
+alongside it.** Two declarations of one shape are two things that can disagree,
+and they will: `ItemsSearch` was hand-written beside a schema whose `pageSize`
+was `10 | 20 | 50 | 100`, declared it as `number`, and so let
+`applyPageSize(search, 999)` compile, reach the URL, and get silently reset.
+
+Two ways to lose the type without noticing:
+
+- **`z.enum(values as [string, ...string[]])`** infers `string`. `z.enum`'s
+  output is `T[number]`, so casting the tuple to `string` elements throws the
+  union away while the runtime check still passes. Build the array as literals.
+- **`.refine(fn)` narrows only when `fn` is a type predicate.** `(v: string) =>
+  boolean` leaves the output `string`; `(v: string): v is Safe` makes it
+  `Safe`. Same runtime behaviour, completely different type.
+
+When a value's validity cannot be expressed structurally — a checked redirect
+path, an ID that has been authorised — a brand (`string & { readonly __x:
+unique symbol }`) is what stops it being interchangeable with any other string.
+Discharge it in one named place rather than casting at each use.
+
 Four rules, each one a bug that happened here:
 
 1. **Degrade, never throw.** A URL, a `config.js` and a `localStorage` entry are

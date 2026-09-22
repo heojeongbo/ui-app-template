@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import {
 	itemQueries,
 	SELECTABLE_STATUSES,
+	statusFromValue,
 	statusKey,
 	useCreateItem,
 	useUpdateItem,
@@ -90,7 +91,12 @@ export function ItemEditorDialog({ open, onOpenChange, item }: Props) {
 				return;
 			}
 
-			const status = Number(value.status) as proto.example_v1.ItemStatus;
+			// A lookup, not `Number(value.status) as ItemStatus`. The cast was
+			// only ever needed because the schema's inferred type had been
+			// widened to `string`; with the union preserved, `value.status` is
+			// proven to be one of the offered values and the enum member is
+			// found rather than asserted.
+			const status = statusFromValue(value.status);
 
 			try {
 				const saved = isEdit

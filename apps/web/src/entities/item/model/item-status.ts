@@ -20,6 +20,76 @@ export const SELECTABLE_STATUSES = [
 	Status.ARCHIVED,
 ] as const;
 
+export type SelectableStatus = (typeof SELECTABLE_STATUSES)[number];
+
+/**
+ * The same set, spelled the way a DOM control has to spell it.
+ *
+ * A `<select>` value is a string and there is no way around that, so the form
+ * layer needs the statuses as `"1" | "2" | "3"`. It lives here, beside the set
+ * it mirrors, because the *vocabulary* belongs to the status domain even
+ * though the reason for it belongs to the DOM — and because writing it in the
+ * form means two lists that can disagree about which statuses are offered.
+ *
+ * The template-literal type is what keeps it honest: add a member to
+ * `SELECTABLE_STATUSES` and `StatusValue` grows with it, with nothing to
+ * update by hand.
+ */
+export type StatusValue = `${SelectableStatus}`;
+
+/**
+ * The one place `String()`'s widening is reasserted.
+ *
+ * TypeScript types `String(1)` as `string` and nothing can prove otherwise, so
+ * exactly one assertion is unavoidable. Making it a named function keeps it to
+ * one — and asserting `StatusValue` PRESERVES the union, where the previous
+ * `as [string, ...string[]]` at the `z.enum` call site erased it and handed
+ * every consumer a bare `string`.
+ */
+export function statusToValue(status: SelectableStatus): StatusValue {
+	return String(status) as StatusValue;
+}
+
+export const STATUS_VALUES = SELECTABLE_STATUSES.map(statusToValue);
+
+/**
+ * Back from the control's string to the enum.
+ *
+ * A lookup rather than `Number(value) as ItemStatus`. The cast version is
+ * unchecked in the direction that matters — it will manufacture a status the
+ * server never defined out of any string that parses as a number — and it was
+ * only ever needed because the schema's type had been widened to `string`.
+ * Now the input is proven and the output is found, not asserted.
+ */
+export function statusFromValue(value: StatusValue): SelectableStatus {
+	return (
+		SELECTABLE_STATUSES.find((status) => statusToValue(status) === value) ??
+		SELECTABLE_STATUSES[0]
+	);
+}
+
+/**
+ * The status a form should start on, for any status the server might send.
+ *
+ * Two ways a status can be outside the offered set, neither exotic. A proto3
+ * scalar is absent on the wire when it holds the zero value, so a server that
+ * never set one sends something that decodes to `UNSPECIFIED`. And proto3
+ * enums are OPEN: a server that adds a status this build has never heard of
+ * decodes to that raw number.
+ *
+ * `.find` and not `status ?? DRAFT`, which is the bug this replaces: `??` is
+ * nullish-only and `UNSPECIFIED` is `0`, so the fallback could not fire for
+ * the one value it looked like it handled.
+ */
+export function defaultSelectableStatus(
+	status: ItemStatus | undefined,
+): SelectableStatus {
+	return (
+		SELECTABLE_STATUSES.find((selectable) => selectable === status) ??
+		SELECTABLE_STATUSES[0]
+	);
+}
+
 /**
  * The filter vocabulary, which is the selectable set plus "don't filter".
  *
