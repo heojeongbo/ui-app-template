@@ -13,6 +13,25 @@ pages/items/
   items.filter-bar.tsx
 ```
 
+## Start one with `pnpm new:screen`
+
+```sh
+pnpm new:screen reports
+```
+
+It writes the page, the content module, the barrel, a spec under
+`apps/web/docs/screens/` with its five fixed headings, and a matching `it.todo`
+placeholder — so `pnpm scenario:check` is green before you have written
+anything, and stays green only while you keep the spec and its tests in step.
+
+Not generated: **the route**. Routing is file-based, so which layout group and
+which guard a screen sits behind is a real decision, and a wrong generated
+route is worse than an absent one. See [routing.md](routing.md).
+
+The command exists because this template proved the need: its own `home`
+screen shipped without a content module or a spec, under a docblock that
+described both. A convention you have to remember is a convention that decays.
+
 ## The rule that makes it hold
 
 **Scenario tests never render.**

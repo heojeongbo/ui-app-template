@@ -32,6 +32,8 @@ pnpm e2e                 # Playwright against a production build
 pnpm gen:proto           # regenerate protobuf types
 pnpm ui:add <name>       # install (or upgrade) a shadcn component
 pnpm ui:remove <name>    # remove one — refuses if still imported
+pnpm new:screen <name>   # scaffold a screen that already follows the triad
+pnpm scenario:check      # spec ↔ scenario-test agreement
 pnpm rename:scope @acme  # rebrand @template/* to your own scope
 ```
 
@@ -169,7 +171,7 @@ real enums.
 1. `pnpm check` — Biome
 2. `pnpm type:check` — every package
 3. `pnpm fsd:check` — layer boundaries
-4. `pnpm test` — unit + scenario
-5. If you touched a screen: does its spec in `apps/web/docs/screens/` still
-   match, and does every `S<n>` still have exactly one test?
+4. `pnpm scenario:check` — every `S<n>` is covered, and nothing names a
+   scenario that no longer exists
+5. `pnpm test` — unit + scenario
 6. If you touched `packages/design/src/ui/`: did you audit the consumers?

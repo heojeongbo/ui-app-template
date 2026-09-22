@@ -4,6 +4,8 @@ import { isDefiniteFailure, toUserMessage } from "@template/core/api";
 import { Button } from "@template/design/ui/button";
 import { AlertCircleIcon, RefreshCwIcon } from "lucide-react";
 
+import { routeErrorContent } from "./route-error.content";
+
 /**
  * What a route shows when its loader throws.
  *
@@ -21,10 +23,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 	// A definite failure carries a message the server wrote for a human. An
 	// indeterminate one carries transport detail ("fetch failed"), which tells
 	// a user nothing and reads as a bug — so it gets our wording instead.
-	const message = toUserMessage(
-		error,
-		"Something went wrong loading this page.",
-	);
+	const message = toUserMessage(error, routeErrorContent.fallbackDescription);
 
 	return (
 		<div role="alert" className="flex flex-col items-start gap-4 p-6">
@@ -34,7 +33,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 					aria-hidden="true"
 				/>
 				<div className="flex flex-col gap-1">
-					<h1 className="font-semibold text-lg">Could not load this page</h1>
+					<h1 className="font-semibold text-lg">{routeErrorContent.title}</h1>
 					<p className="text-muted-foreground text-sm">{message}</p>
 				</div>
 			</div>
@@ -46,7 +45,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 				}}
 			>
 				<RefreshCwIcon aria-hidden="true" />
-				Try again
+				{routeErrorContent.retry}
 			</Button>
 
 			{/*
@@ -56,8 +55,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 			*/}
 			{isDefiniteFailure(error) ? (
 				<p className="text-muted-foreground text-xs">
-					This is unlikely to resolve on its own. If it persists, the request
-					may no longer be valid.
+					{routeErrorContent.definiteNote}
 				</p>
 			) : null}
 		</div>

@@ -2,3 +2,4 @@
 # violations must not reach the remote, but they should not tax every commit.
 pnpm type:check
 pnpm fsd:check
+pnpm scenario:check

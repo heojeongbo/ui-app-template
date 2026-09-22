@@ -68,9 +68,11 @@ docs/                  the conventions this template encodes
 | `pnpm check` | Biome — format + lint, with fixes |
 | `pnpm type:check` | `tsc --noEmit` in every package |
 | `pnpm fsd:check` | Steiger — FSD layer boundaries |
+| `pnpm scenario:check` | Every `S<n>` in a spec has a test, and vice versa |
 | `pnpm test` | Vitest — unit + scenario |
 | `pnpm test:scenario` | Scenario tests only |
 | `pnpm e2e` | Playwright against a production build |
+| `pnpm new:screen <name>` | Scaffold a screen: page, copy, spec, placeholder |
 | `pnpm gen:proto` | Regenerate protobuf types |
 | `pnpm gen:proto:calque` | Tier 2 codegen (needs Go) |
 | `pnpm ui:add <name>` | Install or upgrade a shadcn component |

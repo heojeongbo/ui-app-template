@@ -1,7 +1,7 @@
 # Screen specs
 
-A screen is specified here before it is built, and every scenario in a spec has
-exactly one test.
+A screen is specified here before it is built, and every scenario in a spec is
+covered by a test that names it. `pnpm scenario:check` enforces both halves.
 
 ## The template
 
@@ -30,17 +30,34 @@ What the scenarios deliberately do not assert, and why.
 
 ## The invariant
 
-**For every `S<n>` here there is one test.**
+**Every `S<n>` here is named by at least one test, and every test that names an
+`S<n>` has one to point at.** Both directions, because both fail silently: an
+untested scenario still reads like a promise, and a test naming a deleted
+scenario still passes while asserting something undocumented.
 
-- A built screen: `src/pages/<screen>/<screen>.scenario.test.ts`, one `it()` per
-  scenario, named `S<n>: <the sentence>`.
+- A built screen: any `*.test.ts` in `src/pages/<screen>/`, with `it()` named
+  `S<n>: <the sentence>`.
 - A screen not built yet: one `describe` block in
-  `src/pages/pending-screens.scenario.test.ts` with an `it.todo` per scenario.
-  That file **imports nothing**, so a screen that does not exist yet cannot
-  break the build. When the screen lands, move the block and keep the numbers.
+  `src/pages/pending-screens.scenario.test.ts`, opening with the spec's
+  **filename** (`describe("item-detail (not built)")`) and holding an `it.todo`
+  per scenario. That file **imports nothing**, so a screen that does not exist
+  yet cannot break the build. When the screen lands, move the block and keep
+  the numbers.
+
+**More than one `it()` per scenario is normal and good.** The rule is
+coverage, not a quota: `items.md`'s S5 has three tests — the overflow case, the
+valid-page case, and the empty-result case — because the scenario is one
+outcome and the ways of getting it wrong are several. Splitting them is how the
+failure message tells you which one broke.
 
 Run them with `pnpm test:scenario` — literally `vitest run scenario`, a filename
 filter, no configuration.
+
+**Checked, not remembered.** `pnpm scenario:check` reads the specs and the test
+names and fails on three things: a scenario nothing covers, a test naming a
+scenario that does not exist, and a screen under `pages/` with no spec at all.
+It runs on pre-push and in CI, for the same reason `pnpm fsd:check` does —
+a convention that only a reviewer enforces is a convention that decays.
 
 ## The constraint, and what it buys
 

@@ -16,7 +16,12 @@
 import { describe, it } from "vitest";
 
 // Spec: ../../docs/screens/item-detail.md
-describe("item detail (not built)", () => {
+//
+// The describe text starts with the spec's FILENAME — `item-detail`, not
+// "item detail". `pnpm scenario:check` matches a pending block to its spec by
+// that slug, so the convention is what makes the check a lookup rather than a
+// guess at how someone spelled the screen's name in prose.
+describe("item-detail (not built)", () => {
 	it.todo("S1: shows the item's full description and timestamps");
 	it.todo(
 		"S2: editing a single field sends only that field in the update mask",

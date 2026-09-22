@@ -43,6 +43,12 @@ jobs:
       - name: Type check
         run: pnpm type:check
 
+      - name: Screen specs match their tests
+        # A scenario nobody tested still reads like a promise, and a test
+        # naming a deleted scenario still passes. Both are invisible to a
+        # reader skimming one file, so neither survives review reliably.
+        run: pnpm scenario:check
+
       - name: Unit and scenario tests
         run: pnpm test
 
