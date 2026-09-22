@@ -210,6 +210,7 @@ of files.
 - [data-fetching.md](data-fetching.md) — queries, keys, invalidation
 - [ux/mutations.md](ux/mutations.md) — the write contract
 - [ux/states.md](ux/states.md) — the seven async states
+- [ux/forms.md](ux/forms.md) — validation timing, field masks, unsaved-changes guards
 - [ux/copy.md](ux/copy.md) — where strings live and how they read
 - [design-system.md](design-system.md) — tokens, shadcn, component discipline
 - [logging.md](logging.md) — the logger and why it is wrapped

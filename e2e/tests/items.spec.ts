@@ -260,4 +260,52 @@ test.describe("mutations", () => {
 		await expect(page.getByText("Nothing changed.")).toBeVisible();
 		await expect(page.getByRole("dialog")).toBeHidden();
 	});
+
+	test("edit: closing a dirty form asks before discarding", async ({
+		page,
+	}) => {
+		await page
+			.getByRole("row")
+			.nth(1)
+			.getByRole("button", { name: /^Edit:/ })
+			.click();
+
+		await page.getByLabel("Name").fill("Half-finished edit");
+
+		// Escape, not the Cancel button. Guarding only the button leaves the
+		// three exits a user is more likely to take — Escape, the overlay, the X
+		// — wide open, which is the shape this bug usually has.
+		await page.keyboard.press("Escape");
+
+		await expect(page.getByText("Discard your changes?")).toBeVisible();
+
+		// "Keep editing" returns to the form with the text still there.
+		await page.getByRole("button", { name: "Keep editing" }).click();
+		await expect(page.getByText("Discard your changes?")).toBeHidden();
+		await expect(page.getByLabel("Name")).toHaveValue("Half-finished edit");
+
+		// The Cancel button this time — the other guarded exit, and a different
+		// code path from Escape even though both land on the same prompt.
+		await page.getByRole("button", { name: "Cancel" }).click();
+		await expect(page.getByText("Discard your changes?")).toBeVisible();
+
+		// "Discard" is the only way out that loses work, and it is explicit.
+		await page.getByRole("button", { name: "Discard" }).click();
+		await expect(page.getByRole("dialog")).toBeHidden();
+	});
+
+	test("edit: closing an untouched form does not nag", async ({ page }) => {
+		// A prompt with nothing to lose trains users to dismiss prompts without
+		// reading them — and then it protects nothing.
+		await page
+			.getByRole("row")
+			.nth(1)
+			.getByRole("button", { name: /^Edit:/ })
+			.click();
+
+		await page.keyboard.press("Escape");
+
+		await expect(page.getByText("Discard your changes?")).toBeHidden();
+		await expect(page.getByRole("dialog")).toBeHidden();
+	});
 });

@@ -13,6 +13,7 @@ import {
 	applyServerFieldErrors,
 	clearServerFieldErrors,
 	useAppForm,
+	useStore,
 } from "@template/design/ui/form";
 import type { proto } from "@template/interfaces";
 import { useMemo } from "react";
@@ -21,19 +22,21 @@ import { toast } from "sonner";
 import {
 	itemQueries,
 	SELECTABLE_STATUSES,
-	statusFromValue,
 	statusKey,
+	statusToValue,
 	useCreateItem,
 	useUpdateItem,
 } from "@/entities/item";
+import { confirm } from "@/shared/lib/confirm";
+import { useUnsavedChangesGuard } from "@/shared/lib/form";
 import { toastMutationError } from "@/shared/lib/toast";
 
 import { itemEditorContent } from "./item-editor.content";
 import {
-	changedPaths,
 	itemEditorDefaults,
 	itemEditorFormOptions,
 } from "./item-editor.schema";
+import { failureCopy, planSubmit, successMessage } from "./item-editor.submit";
 
 type Props = {
 	open: boolean;
@@ -81,61 +84,39 @@ export function ItemEditorDialog({ open, onOpenChange, item }: Props) {
 		onSubmit: async ({ value }) => {
 			clearServerFieldErrors(form);
 
-			const paths = changedPaths(initial, value);
+			// Every rule about WHAT to send lives in `item-editor.submit.ts`, so a
+			// scenario test can assert it without rendering. What is left here is
+			// the part that genuinely needs React and the network.
+			const plan = planSubmit(value, initial, item);
 
-			// Nothing to send. Firing the request anyway costs a round trip and a
-			// spurious "Updated" toast for a change the user did not make.
-			if (isEdit && paths.length === 0) {
+			if (plan.kind === "noop") {
 				toast.info(itemEditorContent.nothingChanged);
 				onOpenChange(false);
 				return;
 			}
 
-			// A lookup, not `Number(value.status) as ItemStatus`. The cast was
-			// only ever needed because the schema's inferred type had been
-			// widened to `string`; with the union preserved, `value.status` is
-			// proven to be one of the offered values and the enum member is
-			// found rather than asserted.
-			const status = statusFromValue(value.status);
-
 			try {
-				const saved = isEdit
-					? (
-							await update.mutateAsync({
-								id: item?.id ?? "",
-								item: {
-									name: value.name,
-									description: value.description,
-									status,
-								},
-								updatePaths: paths,
-							})
-						).item
-					: (
-							await create.mutateAsync({
-								name: value.name,
-								description: value.description,
-								status,
-							})
-						).item;
+				const saved =
+					plan.kind === "update"
+						? (await update.mutateAsync(plan.request)).item
+						: (await create.mutateAsync(plan.request)).item;
 
 				// Invalidate BEFORE the toast, and await it: the success message has
 				// to land on a list that already shows the change.
 				await invalidate(itemQueries.lists());
 
-				// Report the SERVER's version, not what was submitted. The server
-				// normalises (it trims), so echoing the input can show a name the
-				// row does not actually have.
 				toast.success(
-					isEdit
-						? itemEditorContent.updated(saved?.name ?? value.name)
-						: itemEditorContent.created(saved?.name ?? value.name),
+					successMessage(itemEditorContent, plan.kind, saved, value.name),
 				);
 				onOpenChange(false);
 			} catch (error) {
 				// A server rejection that names fields goes ONTO those fields.
 				// Without this the user gets "Could not create" and has to guess
 				// which of three inputs to change.
+				//
+				// Stays here rather than moving with the rest: routing an error onto
+				// a field needs the live form instance, which is exactly the kind of
+				// thing a `.ts` decision module must not hold.
 				const fieldErrors = extractFieldErrors(error);
 				if (fieldErrors.length > 0) {
 					const { unmatched } = applyServerFieldErrors(form, fieldErrors);
@@ -147,18 +128,44 @@ export function ItemEditorDialog({ open, onOpenChange, item }: Props) {
 					return;
 				}
 
-				toastMutationError(error, {
-					definite: isEdit
-						? itemEditorContent.updateFailed
-						: itemEditorContent.createFailed,
-					indeterminate: itemEditorContent.unconfirmed,
-				});
+				toastMutationError(error, failureCopy(itemEditorContent, plan.kind));
 			}
 		},
 	});
 
+	const isDirty = useStore(form.store, (state) => state.isDirty);
+
+	// In-app navigation and tab close. The dialog's OWN close paths are guarded
+	// separately below — a blocker only sees navigation, and clicking Cancel is
+	// not navigation.
+	useUnsavedChangesGuard({
+		when: isDirty,
+		copy: itemEditorContent.discard,
+	});
+
+	/**
+	 * Closing the dialog itself: Cancel, Escape, the overlay, the X.
+	 *
+	 * All four funnel through `Dialog`'s `onOpenChange`, which is why the guard
+	 * lives here rather than on the Cancel button — guarding only the button
+	 * leaves the three exits a user is more likely to take wide open.
+	 *
+	 * Submitting also closes, and must not prompt: `onSubmit` calls
+	 * `onOpenChange` directly rather than going through this.
+	 */
+	const requestClose = async (next: boolean) => {
+		if (next) return;
+		if (isDirty && !(await confirm(itemEditorContent.discard))) return;
+		onOpenChange(false);
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog
+			open={open}
+			onOpenChange={(next) => {
+				void requestClose(next);
+			}}
+		>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
@@ -202,7 +209,11 @@ export function ItemEditorDialog({ open, onOpenChange, item }: Props) {
 								<field.SelectWithLabel
 									label={itemEditorContent.statusLabel}
 									items={SELECTABLE_STATUSES.map((status) => ({
-										value: String(status),
+										// `statusToValue`, not `String(status)` — the one
+										// place that still reasserted the DOM's string
+										// spelling by hand instead of using the helper that
+										// owns it.
+										value: statusToValue(status),
 										label: itemEditorContent.statusOptions[statusKey(status)],
 									}))}
 								/>
@@ -221,7 +232,9 @@ export function ItemEditorDialog({ open, onOpenChange, item }: Props) {
 								<Button
 									variant="ghost"
 									disabled={isSubmitting}
-									onClick={() => onOpenChange(false)}
+									onClick={() => {
+										void requestClose(false);
+									}}
 								>
 									{itemEditorContent.cancel}
 								</Button>

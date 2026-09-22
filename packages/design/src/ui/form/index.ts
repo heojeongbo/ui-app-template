@@ -7,7 +7,16 @@
  */
 
 export type { AnyFormApi } from "@tanstack/react-form";
-export { formOptions } from "@tanstack/react-form";
+/**
+ * Re-exported for the same reason as `formOptions`, and with one extra: app
+ * code must not import `@tanstack/react-store` directly. It is a TRANSITIVE
+ * dependency — react-form owns it, nothing declares it — so a direct import
+ * resolves only by hoisting and breaks the day the tree changes shape.
+ *
+ * Needed when a value outside JSX has to react to form state, which
+ * `form.Subscribe` cannot do because it is a render prop.
+ */
+export { formOptions, useStore } from "@tanstack/react-form";
 
 export { useAppForm, withFieldGroup, withForm } from "./form";
 export { useFieldContext, useFormContext } from "./form.context";

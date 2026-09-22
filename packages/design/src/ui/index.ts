@@ -2,6 +2,7 @@
 export * from "./alert";
 export * from "./alert-dialog";
 export * from "./badge";
+export * from "./boundary";
 export * from "./breadcrumb";
 export * from "./button";
 export * from "./card";

@@ -1,6 +1,9 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
+import { createScopedLogger } from "@template/core/logger";
+import { Boundary, BoundaryFallback } from "@template/design/ui/boundary";
 import { Button } from "@template/design/ui/button";
+import { Dialog, DialogContent } from "@template/design/ui/dialog";
 import type { proto } from "@template/interfaces";
 import { BoxIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -28,6 +31,7 @@ import { ItemsTable } from "./items.table";
 import { useItemActions } from "./use-item-actions";
 
 const route = getRouteApi("/(auth)/(shell)/items/");
+const log = createScopedLogger("App");
 
 /**
  * The items screen.
@@ -179,14 +183,57 @@ export function ItemsPage() {
 				row shows the first one's values for a frame.
 			*/}
 			{editing !== undefined ? (
-				<ItemEditorDialog
-					key={editing?.id ?? "new"}
-					open
-					onOpenChange={(next) => {
-						if (!next) setEditing(undefined);
-					}}
-					item={editing ?? undefined}
-				/>
+				/*
+					An island, and the reason this template ships `Boundary` at all.
+
+					Without it a render error inside the editor — a row whose shape
+					the form does not expect, a bad status — propagates to the
+					route's error component and replaces the WHOLE screen, taking
+					the list the user was working through with it. The failure is in
+					the dialog; the blast radius should be too.
+
+					`resetKey` is the row being edited: opening a different row after
+					one that threw must not keep showing the first one's failure. A
+					boundary that has caught stays caught until something resets it.
+
+					Note what this does NOT cover: a mutation that rejects. Those are
+					caught in the submit handler and reported as toasts — a boundary
+					only ever sees rendering. See docs/ux/mutations.md.
+				*/
+				<Boundary
+					resetKey={editing?.id ?? "new"}
+					onError={(error) => log.error("item editor crashed", error)}
+					fallback={(_error, reset) => (
+						<Dialog
+							open
+							onOpenChange={() => {
+								setEditing(undefined);
+							}}
+						>
+							<DialogContent>
+								<BoundaryFallback
+									size="card"
+									title={itemsContent.editorFailedTitle}
+									description={itemsContent.editorFailedDescription}
+									action={
+										<Button variant="outline" onClick={reset}>
+											{itemsContent.editorFailedRetry}
+										</Button>
+									}
+								/>
+							</DialogContent>
+						</Dialog>
+					)}
+				>
+					<ItemEditorDialog
+						key={editing?.id ?? "new"}
+						open
+						onOpenChange={(next) => {
+							if (!next) setEditing(undefined);
+						}}
+						item={editing ?? undefined}
+					/>
+				</Boundary>
 			) : null}
 		</div>
 	);

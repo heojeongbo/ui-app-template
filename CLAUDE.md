@@ -74,8 +74,14 @@ global `MutationCache.onError`. The sequence is *clear server errors → validat
 lost". See [docs/ux/mutations.md](docs/ux/mutations.md).
 
 **Every data-driven surface handles seven states.** Loading / empty-yet /
-empty-filtered / error-with-retry / refetching / mutating / failure. See
-[docs/ux/states.md](docs/ux/states.md).
+empty-filtered / error-with-retry / refetching / mutating / failure. A region
+that can fail on its own gets a `<Boundary>` rather than taking the route down
+with it. See [docs/ux/states.md](docs/ux/states.md).
+
+**A form keeps the user's work.** Validate on submit, send only what changed,
+put server errors on fields, stay open on failure, and guard a dirty form on
+both exits — `beforeunload` AND the router's blocker, because in-app
+navigation never fires the first. See [docs/ux/forms.md](docs/ux/forms.md).
 
 **No `console`.** Biome errors on it. Use `createScopedLogger(scope)` from
 `@template/core/logger`; `@heojeongbo/log-palette` may only be imported inside

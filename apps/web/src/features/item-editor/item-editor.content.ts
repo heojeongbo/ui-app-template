@@ -44,4 +44,15 @@ export const itemEditorContent = {
 	// The write may have landed — say what is true, not what is convenient.
 	unconfirmed:
 		"Could not confirm the change. Refresh to see the current state.",
+
+	// The unsaved-changes prompt. Names what is lost ("your edits") and what
+	// each button does — "Discard" and "Keep editing" rather than OK/Cancel,
+	// because a user skimming a dialog should not have to work out which button
+	// destroys their work.
+	discard: {
+		title: "Discard your changes?",
+		body: "This item has edits that have not been saved. Leaving now loses them.",
+		confirmLabel: "Discard",
+		cancelLabel: "Keep editing",
+	},
 } as const;

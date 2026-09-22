@@ -80,6 +80,14 @@ export const itemsContent = {
 		`“${name}” will be removed. This cannot be undone from here.`,
 	confirmDelete: "Delete",
 	cancel: "Cancel",
+
+	// The editor island's failure. Says what still works ("your list is fine")
+	// rather than only what broke, because the user's next question is whether
+	// they have lost anything — and here they have not.
+	editorFailedTitle: "This editor could not be shown",
+	editorFailedDescription:
+		"Something went wrong opening this item. Your list is unaffected.",
+	editorFailedRetry: "Try again",
 } as const;
 
 export type ItemsContent = typeof itemsContent;

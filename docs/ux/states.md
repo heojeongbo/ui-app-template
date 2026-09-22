@@ -58,14 +58,26 @@ re-runs the loader, where resetting the boundary alone would just re-render the
 same failure. When the error is a definite failure it says so, rather than
 letting the user press retry three times to find out.
 
-Route-level or in-page:
+Route-level or in-page, and they answer different questions:
 
-- **Route-level** — the data the whole page needs.
-- **In-page boundary** — an island that can fail while the rest of the page
-  works.
+- **Route-level** — the data the whole page needs did not arrive, so there is
+  no page to show. The router's `defaultErrorComponent` handles it.
+- **In-page** — one region failed and the rest still works. Wrap it in
+  `<Boundary>` from `@template/design/ui/boundary`. Blanking the screen around
+  a failed panel throws away work the user can still see and act on.
 
-Use `key={routeParam}` on a boundary so switching entities resets both the
-error and the suspense, rather than showing the previous entity's failure.
+Give `<Boundary>` a `resetKey` — usually the id of whatever is shown. A
+boundary that has caught stays caught until something resets it, so without one,
+opening a row that works after a row that threw keeps showing the first row's
+failure.
+
+**A boundary only ever sees rendering.** An error thrown from an event handler
+or an async callback never reaches it — those belong to the mutation contract
+in [mutations.md](mutations.md). Expecting a boundary to cover them is the most
+common way one ends up covering nothing.
+
+The demo wraps the item editor: a dialog that fails to render should not take
+the list behind it down. See `pages/items/items.page.tsx`.
 
 ## Refetching
 
