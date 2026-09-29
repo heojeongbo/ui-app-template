@@ -32,6 +32,8 @@ S8. The URL vocabulary (`status: "all"`, `q`) maps to the wire vocabulary
     (`UNSPECIFIED`, `query`) in exactly one place, shared by the route's loader
     and the page's query — so the two cannot prime and read different cache
     entries.
+S9. A row's icon-only actions name the row they act on, so the accessible name
+    is "Edit: <item>" rather than a bare "Edit" repeated down the column.
 
 ## Data
 

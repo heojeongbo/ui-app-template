@@ -14,10 +14,12 @@ agent has to *do*.
 ## The gate — run all of it before reporting done
 
 ```sh
-pnpm check        # Biome, with fixes
-pnpm type:check   # every package
-pnpm fsd:check    # FSD layer boundaries
-pnpm test         # unit + scenario
+pnpm check           # Biome, with fixes
+pnpm type:check      # every package
+pnpm fsd:check       # FSD layer boundaries
+pnpm scenario:check  # every S<n> is covered, nothing names a dead scenario
+pnpm copy:check      # no user-facing string outside a dictionary
+pnpm test            # unit + scenario
 ```
 
 Add `pnpm e2e` when you changed routing, a form, or a mutation flow.
@@ -67,7 +69,15 @@ imports it. Never `rm -rf` a component folder by hand.
 ## Things not to do
 
 - Do not add a global mutation-error toast.
+- Adding a nav entry needs THREE things: the `nav-items.ts` entry, the `ICONS`
+  entry in `app-shell.tsx`, and the label in `app-shell.content.ts`. Only the
+  third is a compile error, because the record is re-stated as
+  `satisfies Record<NavItemId, unknown>` where it is read.
 - Do not put copy in `packages/core` or `packages/design`.
+- Do not write a user-facing string in a `.tsx`. It goes in the screen's
+  `*.content.ts` dictionary; `pnpm copy:check` refuses the alternative.
+- Do not build a sentence out of pieces in JSX. One interpolating entry,
+  `insert()` with named placeholders.
 - Do not use `console`, or import `@heojeongbo/log-palette` outside
   `packages/core/src/logger/`.
 - Do not edit `ui/primitive/`, `src/gen/`, `routeTree.gen.ts`, or

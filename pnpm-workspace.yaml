@@ -9,6 +9,12 @@ allowBuilds:
   # Needs its postinstall: it resolves and links the platform-specific `buf`
   # binary. Without it `pnpm exec buf` is not on PATH and codegen cannot run.
   '@bufbuild/buf': true
+  # Intlayer's content watcher pulls this in. Same shape as esbuild below:
+  # the platform binary arrives as an optional dep (@parcel/watcher-darwin-arm64
+  # and friends), and the install script is only the build-from-source fallback
+  # for a platform with no prebuild. Running it would need a node-gyp toolchain
+  # in CI for a binary that is already there.
+  '@parcel/watcher': false
   # esbuild resolves its binary from platform optional deps instead; its build
   # script is a no-op verification we don't need.
   esbuild: false
@@ -23,6 +29,14 @@ catalog:
   '@tanstack/react-router': 1.167.2
   '@tanstack/router-plugin': 1.167.2
   '@tanstack/react-router-devtools': 1.167.2
+
+  # The intlayer trio moves together for the same reason as the two above:
+  # `vite-intlayer` GENERATES the dictionary bundle and the .d.ts augmentation
+  # that `react-intlayer` READS. A skew between them is a type error on a key
+  # that exists, or — worse — a key that silently resolves to nothing.
+  intlayer: 9.5.11
+  react-intlayer: 9.5.11
+  vite-intlayer: 9.5.11
 
   # protobuf-es runtime and its codegen plugin must share a major AND minor —
   # generated files import from `@bufbuild/protobuf/codegenv2`, whose shape is

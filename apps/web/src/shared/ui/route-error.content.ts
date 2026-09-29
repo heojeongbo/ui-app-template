@@ -1,3 +1,5 @@
+import { type Dictionary, t } from "intlayer";
+
 /**
  * Everything the route error surface says.
  *
@@ -11,12 +13,22 @@
  *   Without it the retry button invites the user to press it three times to
  *   discover that the answer will not change.
  */
-export const routeErrorContent = {
-	title: "Could not load this page",
-	fallbackDescription: "Something went wrong loading this page.",
-	retry: "Try again",
-	definiteNote:
-		"This is unlikely to resolve on its own. If it persists, the request may no longer be valid.",
-} as const;
-
-export type RouteErrorContent = typeof routeErrorContent;
+export default {
+	key: "route-error",
+	content: {
+		title: t({
+			"en-US": "Could not load this page",
+			"ko-KR": "이 페이지를 불러오지 못했습니다",
+		}),
+		fallbackDescription: t({
+			"en-US": "Something went wrong loading this page.",
+			"ko-KR": "이 페이지를 불러오는 중 문제가 발생했습니다.",
+		}),
+		definiteNote: t({
+			"en-US":
+				"This is unlikely to resolve on its own. If it persists, the request may no longer be valid.",
+			"ko-KR":
+				"저절로 해결될 가능성은 낮습니다. 계속된다면 요청이 더 이상 유효하지 않을 수 있습니다.",
+		}),
+	},
+} satisfies Dictionary;

@@ -8,6 +8,8 @@ import {
 	statusToValue,
 } from "@/entities/item";
 
+import { ITEM_LIMITS } from "./item-editor.limits";
+
 export type ItemEditorCopy = {
 	nameRequired: string;
 	nameTooLong: string;
@@ -33,8 +35,11 @@ export function itemEditorSchema(copy: ItemEditorCopy) {
 			.string()
 			.trim()
 			.min(1, copy.nameRequired)
-			.max(120, copy.nameTooLong),
-		description: z.string().trim().max(2000, copy.descriptionTooLong),
+			.max(ITEM_LIMITS.name, copy.nameTooLong),
+		description: z
+			.string()
+			.trim()
+			.max(ITEM_LIMITS.description, copy.descriptionTooLong),
 		// `STATUS_VALUES` rather than `SELECTABLE_STATUSES.map(String) as
 		// [string, ...string[]]`, which is what used to be here and is the
 		// reason this comment exists.

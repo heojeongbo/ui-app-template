@@ -45,6 +45,27 @@ export const useThemeStore = createAppStore<ThemeState>()(
 	},
 );
 
+/**
+ * The half of `Theme` a toggle can actually offer.
+ *
+ * `system` is a preference the OS answers, not a destination a button can
+ * switch to — so the toggle's vocabulary is two values, and a content record
+ * keyed by it has exactly two entries rather than a dead `system` label.
+ */
+export type ToggleTarget = Exclude<Theme, "system">;
+
+/**
+ * The theme the toggle applies next.
+ *
+ * Extracted from a ternary that lived inside the button's JSX. A scenario test
+ * never renders, so "system toggles to dark, not to light" — the case a user
+ * on a light OS hits on their very first click — was unreachable to anything
+ * that could fail on it. See docs/page-triad.md.
+ */
+export function nextTheme(current: Theme): ToggleTarget {
+	return current === "dark" ? "light" : "dark";
+}
+
 /** Whether the OS is currently asking for dark. */
 export function prefersDark(): boolean {
 	return (

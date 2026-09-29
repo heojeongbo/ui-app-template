@@ -177,8 +177,21 @@
  *               .dark { --brand: oklch(0.7 0.18 300); }
  *   inline.css: @theme inline { --color-brand: var(--brand); }
  *
- * A custom FONT is a theme token too, and it belongs in `inline.css` rather
- * than here — `--font-sans` has to be inside `@theme` for the `font-sans`
- * utility to resolve to it. Setting it on `body` leaves the utility pointing
- * at Tailwind's default stack, and the two then disagree.
+ * A custom FONT works the same way, and now obeys the same rule as a colour:
+ * `inline.css` maps `--font-sans: var(--sans)`, the default stack lives in
+ * `light.css` beside `--radius`, and you override `--sans` / `--mono` HERE.
+ *
+ *   this file:  :root { --sans: "Inter", ui-sans-serif, sans-serif; }
+ *
+ * Do NOT set `font-family` on `body`: that leaves the `font-sans` utility
+ * pointing at Tailwind's default stack, and the two then disagree wherever the
+ * utility is written out.
+ *
+ * A per-language override goes on the variable too, never on a selector's
+ * `font-family`, for the same reason. It is how Han unification is settled —
+ * one stack cannot know whether 直 should take Korean, Japanese or Simplified
+ * Chinese shapes, and `<html lang>` (written by LocaleProvider) is the only
+ * thing that does:
+ *
+ *   :root:lang(ja) { --sans: "Hiragino Sans", "Yu Gothic UI", Meiryo, …; }
  */

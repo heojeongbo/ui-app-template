@@ -1,3 +1,5 @@
+import { type Dictionary, t } from "intlayer";
+
 /**
  * Everything this screen says.
  *
@@ -6,15 +8,15 @@
  * not hold: this file is the first screen a reader opens, and a screen that
  * inlines "just these three" teaches that inlining is fine — after which the
  * fourth screen inlines twelve.
- *
- * It is also the i18n seam. `docs/i18n.md` promises that EVERY screen's
- * strings live in a `*.content.ts`, and a promise with an exception is a
- * find-and-replace waiting to happen.
  */
-export const homeContent = {
-	title: "Home",
-	description: "A starting point. Replace this screen with your own.",
-	browseItems: "Browse items",
-} as const;
-
-export type HomeContent = typeof homeContent;
+export default {
+	key: "home",
+	content: {
+		title: t({ "en-US": "Home", "ko-KR": "홈" }),
+		description: t({
+			"en-US": "A starting point. Replace this screen with your own.",
+			"ko-KR": "시작점입니다. 이 화면을 여러분의 것으로 바꾸세요.",
+		}),
+		browseItems: t({ "en-US": "Browse items", "ko-KR": "품목 둘러보기" }),
+	},
+} satisfies Dictionary;

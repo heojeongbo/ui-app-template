@@ -9,6 +9,31 @@
 :root {
 	--radius: 0.625rem;
 
+	/* Theme-independent, like --radius, and referenced through `var()` from
+	   inline.css's @theme block — see the note there for why the indirection
+	   matters.
+
+	   The CJK families are appended rather than prepended: font matching is
+	   per-character, so Latin still resolves at `ui-sans-serif` and only the
+	   characters the earlier faces cannot draw fall through. Without them, a
+	   Linux box or any machine whose OS language differs from the app's picks
+	   an arbitrary fallback, and Hangul renders with mismatched metrics beside
+	   Latin. */
+	--sans:
+		ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+		"Helvetica Neue", Arial, "Apple SD Gothic Neo", Pretendard, "Noto Sans KR",
+		"Malgun Gothic", "Hiragino Sans", "Yu Gothic UI", Meiryo, "PingFang SC",
+		"Microsoft YaHei", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+
+	/* The CJK faces here are PROPORTIONAL, and that is the trade: no system
+	   monospace font carries CJK glyphs, and the fixed-width CJK faces that
+	   exist (D2Coding, Sarasa Mono K) are rarely installed. A proportional
+	   glyph inside a monospace run is worse than perfect and much better than
+	   the tofu box a Latin-only stack produces. */
+	--mono:
+		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Apple SD Gothic Neo", "Noto Sans KR", monospace;
+
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.145 0 0);
 

@@ -7,15 +7,16 @@ import {
 	SelectValue,
 } from "@template/design/ui/select";
 import { useId } from "react";
+import { useIntlayer } from "react-intlayer";
 
 import { STATUS_FILTERS, type StatusFilter } from "@/entities/item";
+import { useFormatters } from "@/shared/lib/format";
 import {
 	PAGE_SIZE_OPTIONS,
 	type PageSize,
 	toPageSize,
 } from "@/shared/lib/search";
 
-import { itemsContent } from "./items.content";
 import type { ItemsSearch } from "./items.filters";
 
 type Props = {
@@ -43,15 +44,28 @@ export function ItemsFilterBar({
 	onQueryChange,
 	onPageSizeChange,
 }: Props) {
+	const c = useIntlayer("items");
+	const f = useFormatters();
 	const searchId = useId();
 	const statusId = useId();
 	const sizeId = useId();
 
+	// Re-stated where the compiler sees the GENERATED type. `STATUS_FILTERS` is
+	// what the loop below iterates, so a filter added there without a label
+	// fails here rather than rendering an empty option.
+	const statusOptions = c.statusOptions satisfies Record<StatusFilter, unknown>;
+
 	return (
 		<div className="flex flex-wrap items-end gap-3">
 			<div className="flex min-w-48 flex-1 flex-col gap-1.5">
+				{/*
+					The same leaf in both of its shapes, three lines apart: rendered as
+					content here, and as a raw string on `placeholder` below. That
+					split is the whole point of the shape table in docs/ux/copy.md —
+					a dictionary node renders, but a string prop needs `.value`.
+				*/}
 				<label htmlFor={searchId} className="font-medium text-sm">
-					{itemsContent.searchPlaceholder}
+					{c.searchPlaceholder}
 				</label>
 				<Input
 					id={searchId}
@@ -61,7 +75,7 @@ export function ItemsFilterBar({
 					// uncontrolled input ignores a changed defaultValue otherwise.
 					key={search.q ?? ""}
 					defaultValue={search.q ?? ""}
-					placeholder={itemsContent.searchPlaceholder}
+					placeholder={c.searchPlaceholder.value}
 					onBlur={(event) => onQueryChange(event.currentTarget.value)}
 					onKeyDown={(event) => {
 						if (event.key === "Enter") {
@@ -73,7 +87,7 @@ export function ItemsFilterBar({
 
 			<div className="flex flex-col gap-1.5">
 				<label htmlFor={statusId} className="font-medium text-sm">
-					{itemsContent.statusLabel}
+					{c.statusLabel}
 				</label>
 				<Select
 					value={search.status}
@@ -85,7 +99,7 @@ export function ItemsFilterBar({
 					<SelectContent>
 						{STATUS_FILTERS.map((status) => (
 							<SelectItem key={status} value={status}>
-								{itemsContent.statusOptions[status]}
+								{statusOptions[status]}
 							</SelectItem>
 						))}
 					</SelectContent>
@@ -94,7 +108,7 @@ export function ItemsFilterBar({
 
 			<div className="flex flex-col gap-1.5">
 				<label htmlFor={sizeId} className="font-medium text-sm">
-					{itemsContent.pageSizeLabel}
+					{c.pageSizeLabel}
 				</label>
 				<Select
 					value={String(search.pageSize)}
@@ -118,9 +132,17 @@ export function ItemsFilterBar({
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
+						{/*
+							Two spellings of the same number, deliberately. The VALUE is a
+							protocol token that `toPageSize` parses back with `Number()`, so it
+							must stay machine-readable — `Number("1,000")` is NaN, and the day
+							someone adds 1000 to PAGE_SIZE_OPTIONS a grouped value would make
+							the picker silently inert. The LABEL is presentation, so it is
+							formatted.
+						*/}
 						{PAGE_SIZE_OPTIONS.map((size) => (
 							<SelectItem key={size} value={String(size)}>
-								{size}
+								{f.integer(size)}
 							</SelectItem>
 						))}
 					</SelectContent>

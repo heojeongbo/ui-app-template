@@ -10,12 +10,13 @@ import {
 } from "@template/design/ui/card";
 import { useAppForm } from "@template/design/ui/form";
 import { useMemo } from "react";
+import { useIntlayer } from "react-intlayer";
 import { toast } from "sonner";
 
 import { useSessionStore } from "@/entities/session";
 import { toPath } from "@/shared/lib/router";
+import { LocaleToggle } from "@/shared/ui/locale-toggle";
 
-import { signInContent } from "./signin.content";
 import { signInFormOptions } from "./signin.schema";
 
 const log = createScopedLogger("Auth");
@@ -30,13 +31,34 @@ const log = createScopedLogger("Auth");
 const route = getRouteApi("/(public)/signin");
 
 export function SignInPage() {
+	const c = useIntlayer("signin");
 	const { redirect } = route.useSearch();
 	const navigate = route.useNavigate();
 	const signIn = useSessionStore((s) => s.signIn);
 
-	// Rebuilt when the copy changes, not frozen at module scope — that is the
-	// whole reason the schema is a factory.
-	const options = useMemo(() => signInFormOptions(signInContent), []);
+	// Keyed on the MESSAGES, not on `c`. Two reasons, and both bite:
+	//
+	// `useIntlayer` may hand back a fresh object each render, so `[c]` would
+	// rebuild `formOptions` — and therefore `defaultValues` — on every render,
+	// which is the classic way a form resets while someone is typing in it.
+	//
+	// And `[]` is what was here before, which was harmless only while the copy
+	// was a module constant. Now that it changes with the locale, an empty dep
+	// array freezes the boot language into the validation messages — exactly
+	// the bug docs/ux/forms.md warns about and the reason the schema is a
+	// factory in the first place.
+	const options = useMemo(
+		() =>
+			signInFormOptions({
+				// Field by field, never a spread: a dictionary leaf is a node, not a
+				// string, so `{...c}` satisfies neither field and the zod message
+				// renders as "[object Object]" on the one surface — a form error —
+				// where the user is already stuck.
+				usernameRequired: c.usernameRequired.value,
+				passwordRequired: c.passwordRequired.value,
+			}),
+		[c.usernameRequired.value, c.passwordRequired.value],
+	);
 
 	const form = useAppForm({
 		...options,
@@ -63,9 +85,9 @@ export function SignInPage() {
 				// answer is `warning`, because the request may have succeeded and
 				// telling the user it failed is a claim we cannot support.
 				if (isDefiniteFailure(error)) {
-					toast.error(signInContent.rejected);
+					toast.error(c.rejected.value);
 				} else {
-					toast.warning(signInContent.unreachable);
+					toast.warning(c.unreachable.value);
 				}
 
 				// Deliberately NOT re-thrown and NOT resetting the form: the user's
@@ -76,7 +98,14 @@ export function SignInPage() {
 	});
 
 	return (
-		<div className="flex min-h-svh items-center justify-center p-6">
+		<div className="flex min-h-svh flex-col items-center justify-center gap-3 p-6">
+			{/*
+				The switcher is on THIS screen, not only in the signed-in shell.
+				Someone who cannot read English cannot sign in to reach a control
+				that only appears after signing in — which is where it was.
+			*/}
+			<LocaleToggle className="self-end sm:self-auto" />
+
 			<Card className="w-full max-w-sm">
 				<CardHeader>
 					{/*
@@ -88,9 +117,9 @@ export function SignInPage() {
 						its styling.
 					*/}
 					<CardTitle>
-						<h1>{signInContent.title}</h1>
+						<h1>{c.title}</h1>
 					</CardTitle>
-					<CardDescription>{signInContent.description}</CardDescription>
+					<CardDescription>{c.description}</CardDescription>
 				</CardHeader>
 				<CardContent>
 					{/*
@@ -107,7 +136,7 @@ export function SignInPage() {
 							<form.AppField name="username">
 								{(field) => (
 									<field.InputWithLabel
-										label={signInContent.usernameLabel}
+										label={c.usernameLabel.value}
 										autoComplete="username"
 										autoFocus
 									/>
@@ -117,7 +146,7 @@ export function SignInPage() {
 							<form.AppField name="password">
 								{(field) => (
 									<field.InputWithLabel
-										label={signInContent.passwordLabel}
+										label={c.passwordLabel.value}
 										type="password"
 										autoComplete="current-password"
 									/>
@@ -127,9 +156,7 @@ export function SignInPage() {
 							<form.Subscribe selector={(state) => state.isSubmitting}>
 								{(isSubmitting) => (
 									<form.SubmitButton className="mt-2">
-										{isSubmitting
-											? signInContent.submitting
-											: signInContent.submit}
+										{isSubmitting ? c.submitting : c.submit}
 									</form.SubmitButton>
 								)}
 							</form.Subscribe>

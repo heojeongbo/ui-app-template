@@ -72,8 +72,6 @@ const pascal = name
 	.split("-")
 	.map((part) => part[0].toUpperCase() + part.slice(1))
 	.join("");
-/** `item-detail` -> `itemDetail` */
-const camel = pascal[0].toLowerCase() + pascal.slice(1);
 /** `item-detail` -> `Item detail` */
 const title = name
 	.split("-")
@@ -90,27 +88,41 @@ const files = new Map();
 
 files.set(
 	path.join(pageDir, `${name}.content.ts`),
-	`/**
+	`import { type Dictionary, t } from "intlayer";
+
+/**
  * Everything this screen says.
  *
- * Every user-facing string, in one typed object. Not a nicety — it is the i18n
- * seam (docs/i18n.md) and the thing that makes copy reviewable without reading
- * JSX. See docs/ux/copy.md for the voice rules.
+ * An intlayer dictionary, read by key with \`useIntlayer("${name}")\`. Not a
+ * nicety — it is what makes the screen translatable and what makes copy
+ * reviewable without reading JSX. \`pnpm copy:check\` refuses a user-facing
+ * string written anywhere else.
+ *
+ * \`export default\` is the one carve-out to "named exports only": the CLI
+ * reads the default export and there is no named form. See docs/i18n.md.
+ *
+ * Every locale in intlayer.config.ts has to be present — \`strictMode: "strict"\`
+ * makes a missing one a type error rather than a silent fall-through to
+ * English. See docs/ux/copy.md for the voice rules.
  */
-export const ${camel}Content = {
-	title: "${title}",
-	description: "TODO: what this screen is for, in one line.",
-} as const;
-
-export type ${pascal}Content = typeof ${camel}Content;
+export default {
+	key: "${name}",
+	content: {
+		title: t({ "en-US": "${title}", "ko-KR": "TODO: ${title}" }),
+		description: t({
+			"en-US": "TODO: what this screen is for, in one line.",
+			"ko-KR": "TODO: 이 화면이 무엇을 위한 것인지 한 줄로.",
+		}),
+	},
+} satisfies Dictionary;
 `,
 );
 
 files.set(
 	path.join(pageDir, `${name}.page.tsx`),
-	`import { PageHeader } from "@/shared/ui/page-header";
+	`import { useIntlayer } from "react-intlayer";
 
-import { ${camel}Content } from "./${name}.content";
+import { PageHeader } from "@/shared/ui/page-header";
 
 /**
  * A page renders. It does not decide.
@@ -120,12 +132,11 @@ import { ${camel}Content } from "./${name}.content";
  * assert. See docs/page-triad.md.
  */
 export function ${pascal}Page() {
+	const c = useIntlayer("${name}");
+
 	return (
 		<div className="flex flex-col">
-			<PageHeader
-				title={${camel}Content.title}
-				description={${camel}Content.description}
-			/>
+			<PageHeader title={c.title} description={c.description} />
 		</div>
 	);
 }
@@ -134,8 +145,7 @@ export function ${pascal}Page() {
 
 files.set(
 	path.join(pageDir, "index.ts"),
-	`export { ${camel}Content } from "./${name}.content";
-export { ${pascal}Page } from "./${name}.page";
+	`export { ${pascal}Page } from "./${name}.page";
 `,
 );
 

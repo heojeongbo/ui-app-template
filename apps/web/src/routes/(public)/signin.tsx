@@ -1,7 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getIntlayer } from "intlayer";
 import { z } from "zod";
 
 import { SignInPage } from "@/pages/signin";
+import { currentLocale, documentTitle } from "@/shared/lib/locale";
 import {
 	HOME,
 	isSafeRedirect,
@@ -35,6 +37,12 @@ const signInSearchSchema = z.object({
 }) satisfies z.ZodType<{ redirect: SafeRedirect }, { redirect?: string }>;
 
 export const Route = createFileRoute("/(public)/signin")({
+	head: () => ({
+		meta: [
+			{ title: documentTitle(getIntlayer("signin", currentLocale()).title) },
+		],
+	}),
+
 	validateSearch: signInSearchSchema,
 
 	// The inverse guard. Without it, an already-signed-in user can reach

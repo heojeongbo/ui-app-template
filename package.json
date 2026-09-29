@@ -17,6 +17,7 @@
 		"type:check": "pnpm -r type:check",
 		"fsd:check": "steiger apps/web/src",
 		"scenario:check": "node scripts/check-scenarios.mjs",
+		"copy:check": "node scripts/check-copy.mjs",
 		"test": "pnpm --filter \"./packages/*\" --filter @template/web --no-bail test",
 		"test:scenario": "pnpm -C apps/web test:scenario",
 		"e2e": "pnpm -C e2e test",

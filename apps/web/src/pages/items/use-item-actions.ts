@@ -1,13 +1,12 @@
 import { useInvalidateQuery } from "@template/core/query";
 import type { proto } from "@template/interfaces";
 import { useState } from "react";
+import { useIntlayer } from "react-intlayer";
 import { toast } from "sonner";
 
 import { itemQueries, useCreateItem, useDeleteItem } from "@/entities/item";
 import { confirm } from "@/shared/lib/confirm";
 import { toastMutationError } from "@/shared/lib/toast";
-
-import { itemsContent } from "./items.content";
 
 /**
  * Delete, with a confirmation and an undo.
@@ -29,6 +28,10 @@ import { itemsContent } from "./items.content";
  * offer a soft delete; see docs/ux/mutations.md.
  */
 export function useItemActions() {
+	// Every read below lands in a `string` prop — a confirm option or a toast
+	// body — so every one of them takes `.value`. Nothing here renders.
+	const c = useIntlayer("items");
+	const common = useIntlayer("common");
 	const del = useDeleteItem();
 	const create = useCreateItem();
 	const invalidate = useInvalidateQuery();
@@ -39,10 +42,10 @@ export function useItemActions() {
 
 	const remove = async (item: proto.example_v1.Item) => {
 		const ok = await confirm({
-			title: itemsContent.confirmDeleteTitle,
-			body: itemsContent.confirmDeleteBody(item.name),
-			confirmLabel: itemsContent.confirmDelete,
-			cancelLabel: itemsContent.cancel,
+			title: c.confirmDeleteTitle.value,
+			body: c.confirmDeleteBody({ name: item.name }),
+			confirmLabel: common.delete.value,
+			cancelLabel: common.cancel.value,
 			destructive: true,
 		});
 		if (!ok) return;
@@ -52,9 +55,9 @@ export function useItemActions() {
 			await del.mutateAsync({ id: item.id });
 			await invalidate(itemQueries.lists());
 
-			toast.success(itemsContent.deleted(item.name), {
+			toast.success(c.deleted({ name: item.name }), {
 				action: {
-					label: itemsContent.undo,
+					label: common.undo.value,
 					onClick: () => {
 						void restore(item);
 					},
@@ -62,8 +65,8 @@ export function useItemActions() {
 			});
 		} catch (error) {
 			toastMutationError(error, {
-				definite: itemsContent.deleteFailed,
-				indeterminate: itemsContent.unconfirmed,
+				definite: c.deleteFailed.value,
+				indeterminate: c.unconfirmed.value,
 			});
 		} finally {
 			// `finally`, so a failure does not leave the whole table disabled.
@@ -79,13 +82,13 @@ export function useItemActions() {
 				status: item.status,
 			});
 			await invalidate(itemQueries.lists());
-			toast.success(itemsContent.restored(item.name));
+			toast.success(c.restored({ name: item.name }));
 		} catch (error) {
 			// An undo that fails silently is worse than no undo: the user believes
 			// the row is back.
 			toastMutationError(error, {
-				definite: itemsContent.restoreFailed,
-				indeterminate: itemsContent.unconfirmed,
+				definite: c.restoreFailed.value,
+				indeterminate: c.unconfirmed.value,
 			});
 		}
 	};

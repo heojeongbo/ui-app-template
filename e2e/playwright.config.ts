@@ -49,6 +49,23 @@ export default defineConfig({
 
 	use: {
 		baseURL: `http://localhost:${PORT}`,
+
+		// Pins what `navigator.languages` reports, so the app's own detection
+		// resolves to en-US regardless of the machine running the suite. Without
+		// it the specs' English assertions pass in CI and fail on a Korean
+		// laptop, reading as a copy regression rather than as an unset default.
+		locale: "en-US",
+
+		// Asia/Seoul, NOT UTC, and that is the deliberate half.
+		//
+		// Unset, this inherits the machine's zone, so a developer in Seoul and CI
+		// in UTC render different calendar days for the same fixture. Pinning UTC
+		// would make the suite deterministic AND make the bug it is guarding
+		// invisible, because `toISOString()` is correct in UTC. The fixtures are
+		// EPOCH (2026-01-01T00:00:00Z) plus one hour per index, so rows 16–23 are
+		// Jan 1 in UTC and Jan 2 in Seoul — which is the off-by-one the date cell
+		// used to ship.
+		timezoneId: "Asia/Seoul",
 		// On the first retry, not every run: traces are large, and the one that
 		// matters is the run that failed.
 		trace: "on-first-retry",

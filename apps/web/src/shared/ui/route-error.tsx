@@ -3,8 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { isDefiniteFailure, toUserMessage } from "@template/core/api";
 import { Button } from "@template/design/ui/button";
 import { AlertCircleIcon, RefreshCwIcon } from "lucide-react";
-
-import { routeErrorContent } from "./route-error.content";
+import { useIntlayer } from "react-intlayer";
 
 /**
  * What a route shows when its loader throws.
@@ -19,11 +18,13 @@ import { routeErrorContent } from "./route-error.content";
  */
 export function RouteError({ error }: ErrorComponentProps) {
 	const router = useRouter();
+	const c = useIntlayer("route-error");
+	const common = useIntlayer("common");
 
 	// A definite failure carries a message the server wrote for a human. An
 	// indeterminate one carries transport detail ("fetch failed"), which tells
 	// a user nothing and reads as a bug — so it gets our wording instead.
-	const message = toUserMessage(error, routeErrorContent.fallbackDescription);
+	const message = toUserMessage(error, c.fallbackDescription.value);
 
 	return (
 		<div role="alert" className="flex flex-col items-start gap-4 p-6">
@@ -33,7 +34,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 					aria-hidden="true"
 				/>
 				<div className="flex flex-col gap-1">
-					<h1 className="font-semibold text-lg">{routeErrorContent.title}</h1>
+					<h1 className="font-semibold text-lg">{c.title}</h1>
 					<p className="text-muted-foreground text-sm">{message}</p>
 				</div>
 			</div>
@@ -45,7 +46,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 				}}
 			>
 				<RefreshCwIcon aria-hidden="true" />
-				{routeErrorContent.retry}
+				{common.retry}
 			</Button>
 
 			{/*
@@ -54,9 +55,7 @@ export function RouteError({ error }: ErrorComponentProps) {
 				button three times to find out.
 			*/}
 			{isDefiniteFailure(error) ? (
-				<p className="text-muted-foreground text-xs">
-					{routeErrorContent.definiteNote}
-				</p>
+				<p className="text-muted-foreground text-xs">{c.definiteNote}</p>
 			) : null}
 		</div>
 	);

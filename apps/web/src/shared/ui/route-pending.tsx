@@ -1,4 +1,5 @@
 import { Skeleton } from "@template/design/ui/skeleton";
+import { useIntlayer } from "react-intlayer";
 
 /**
  * Shown while a route's loader runs.
@@ -12,11 +13,13 @@ import { Skeleton } from "@template/design/ui/skeleton";
  * happening; the visual skeleton says nothing to one.
  */
 export function RoutePending() {
+	const c = useIntlayer("common");
+
 	return (
 		<div
 			role="status"
 			aria-busy="true"
-			aria-label="Loading"
+			aria-label={c.loading.value}
 			className="flex flex-col gap-4 p-6"
 		>
 			<Skeleton className="h-8 w-48" />

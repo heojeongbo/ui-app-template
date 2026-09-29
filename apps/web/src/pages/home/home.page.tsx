@@ -1,9 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@template/design/ui/button";
+import { useIntlayer } from "react-intlayer";
 
 import { PageHeader } from "@/shared/ui/page-header";
-
-import { homeContent } from "./home.content";
 
 /**
  * A page renders. It does not decide.
@@ -17,14 +16,16 @@ import { homeContent } from "./home.content";
  * a scenario to assert — the triad is a shape, not a quota.
  */
 export function HomePage() {
+	const c = useIntlayer("home");
+
 	return (
 		<div className="flex flex-col">
 			<PageHeader
-				title={homeContent.title}
-				description={homeContent.description}
+				title={c.title}
+				description={c.description}
 				actions={
 					<Button asChild>
-						<Link to="/items">{homeContent.browseItems}</Link>
+						<Link to="/items">{c.browseItems}</Link>
 					</Button>
 				}
 			/>

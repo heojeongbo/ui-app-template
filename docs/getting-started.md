@@ -147,7 +147,7 @@ Add components with `pnpm ui:add <name>` — then **check the bottom of
 | **calque** (offline/IndexedDB) | You need reads served locally and reconciled. Costs a Go toolchain. | `packages/interfaces/calque/README.md` has the exact steps |
 | **Playwright** | Almost always. It caught two real bugs building this. | `rm -rf e2e`, drop it from `pnpm-workspace.yaml` and CI |
 | **The runtime-config mechanism** | You deploy one image to several environments. | `rm -rf docker public/config.js`, drop the script tag from `index.html` |
-| **i18n** | Not wired up — the `*.content.ts` separation it needs is already here. [i18n.md](i18n.md) has the steps. | — |
+| **i18n** (intlayer) | You ship more than one language — or expect to. The `*.content.ts` separation is the cost, and it is worth having regardless. [i18n.md](i18n.md) | Replace each dictionary's `t({…})` with its string, drop the three `intlayer` deps, the Vite plugin, `intlayer.config.ts`, `pretype:check`, and `shared/lib/locale` |
 
 ## 8. Read these two
 

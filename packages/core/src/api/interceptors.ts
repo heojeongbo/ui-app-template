@@ -6,6 +6,33 @@ import { isAbortError, isUnauthenticated } from "./errors";
 const log = createScopedLogger("Api");
 
 /**
+ * Stamps every request with the language the user is reading.
+ *
+ * A BCP-47 tag is not copy — this package still ships no words a user reads —
+ * and it arrives by injection, exactly like `authInterceptor`'s
+ * `onUnauthenticated`. So it belongs here rather than in the app.
+ *
+ * **A thunk, read per request, not a value captured when the transport is
+ * built.** An interceptor that closed over the locale would send the boot
+ * language for the life of the page, and the bug presents as "the server
+ * ignores my language setting" — which is the one place nobody looks.
+ *
+ * This is also the ONLY real fix for server-written error text. A definite
+ * failure's message is rendered verbatim (`toUserMessage` returns
+ * `error.rawMessage`, `extractFieldErrors` puts it on a field), and no client
+ * dictionary can translate an arbitrary sentence. The client states its
+ * preference; answering in it is the server's half of the contract.
+ */
+export function acceptLanguageInterceptor(
+	getLocale: () => string,
+): Interceptor {
+	return (next) => (req) => {
+		req.header.set("Accept-Language", getLocale());
+		return next(req);
+	};
+}
+
+/**
  * Logs every RPC rejection and **returns the call unchanged**.
  *
  * That last part is the whole contract. An interceptor that swallows a

@@ -1,9 +1,10 @@
 import { Button } from "@template/design/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { useIntlayer } from "react-intlayer";
 
+import { useFormatters } from "@/shared/lib/format";
 import { lastPage } from "@/shared/lib/search";
 
-import { itemsContent } from "./items.content";
 import { type ItemsSearch, visibleRange } from "./items.filters";
 
 /**
@@ -27,21 +28,31 @@ export function ItemsPager({
 	 */
 	onStep: (delta: -1 | 1) => void;
 }) {
+	const c = useIntlayer("items");
+	const common = useIntlayer("common");
+	const f = useFormatters();
 	const { from, to } = visibleRange(search, total);
 	const last = lastPage(total, search.pageSize);
 
 	return (
 		<nav
-			aria-label="Pagination"
+			aria-label={common.pagination.value}
 			className="flex flex-wrap items-center justify-between gap-3"
 		>
 			<p className="text-muted-foreground text-sm">
-				{itemsContent.range(from, to, total)}
+				{c.range({
+					from: f.integer(from),
+					to: f.integer(to),
+					total: f.integer(total),
+				})}
 			</p>
 
 			<div className="flex items-center gap-2">
 				<span className="text-muted-foreground text-sm">
-					{itemsContent.page(search.page, last)}
+					{c.page({
+						current: f.integer(search.page),
+						last: f.integer(last),
+					})}
 				</span>
 				<Button
 					variant="outline"
@@ -50,7 +61,7 @@ export function ItemsPager({
 					onClick={() => onStep(-1)}
 				>
 					<ChevronLeftIcon aria-hidden="true" />
-					{itemsContent.previous}
+					{c.previous}
 				</Button>
 				<Button
 					variant="outline"
@@ -58,7 +69,7 @@ export function ItemsPager({
 					disabled={search.page >= last}
 					onClick={() => onStep(1)}
 				>
-					{itemsContent.next}
+					{c.next}
 					<ChevronRightIcon aria-hidden="true" />
 				</Button>
 			</div>

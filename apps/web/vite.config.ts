@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv, type UserConfig } from "vite";
+import { intlayer } from "vite-intlayer";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkg = (name: string) =>
@@ -39,6 +40,18 @@ export default defineConfig(({ mode }) => {
 				routeFileIgnorePattern: ".*.content.tsx?",
 			}),
 			react(),
+
+			// NOT gated on `isTest`, unlike `autoCodeSplitting` above — and the
+			// difference is the point. This plugin is what resolves the generated
+			// dictionary entry, and `app/router.test.tsx` renders the REAL route
+			// tree, so SignInPage / ItemsPage / RouteNotFound all call
+			// `useIntlayer`. Skipping it under Vitest fails those tests at import
+			// time, before a single assertion runs.
+			//
+			// What does have to be off under the test runner is the content
+			// WATCHER, and that lives in `intlayer.config.ts`.
+			intlayer(),
+
 			tailwindcss(),
 		],
 
@@ -83,6 +96,13 @@ export default defineConfig(({ mode }) => {
 
 		test: {
 			environment: "happy-dom",
+
+			// Node reads its default timezone from TZ, and happy-dom runs in Node.
+			// Unpinned, any test that touches an ambient-timezone path passes or
+			// fails by machine. Seoul rather than UTC for the reason
+			// e2e/playwright.config.ts gives: UTC is the one zone in which the
+			// date bug this pin guards cannot reproduce.
+			env: { TZ: "Asia/Seoul" },
 			include: ["src/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
 		},
 	} satisfies UserConfig;

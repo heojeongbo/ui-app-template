@@ -51,8 +51,11 @@ contains no branching of its own.
 **`*.page.tsx`** — reads route state, calls hooks, renders. Its handlers are
 one-line calls into the decision module. If one grows a `?:`, move it out.
 
-**`*.content.ts`** — every user-facing string, typed. See
-[ux/copy.md](ux/copy.md).
+**`*.content.ts`** — every user-facing string, as an intlayer dictionary
+(`export default { key, content }`), read with `useIntlayer("<key>")`. A widget
+and a `shared/ui` component get one too: the seam is the FILE, not the layer.
+Held by `pnpm copy:check` the way the spec loop is held by
+`pnpm scenario:check`. See [ux/copy.md](ux/copy.md) and [i18n.md](i18n.md).
 
 **`*.filters.ts`** (or `*.rules.ts`, `*.transitions.ts` — name it for what it
 decides) — pure functions. No React, no I/O.

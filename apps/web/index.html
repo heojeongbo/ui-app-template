@@ -1,8 +1,21 @@
 <!doctype html>
-<html lang="en" class="">
+<!--
+	`lang` and `dir` are the values before React boots; LocaleProvider
+	corrects them once the persisted locale has rehydrated. Stating `dir`
+	here rather than relying on its default makes the later write obviously
+	the same knob rather than a new one.
+-->
+<html lang="en-US" dir="ltr" class="">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!--
+			The title the browser shows BEFORE React boots. Every route replaces
+			it through its `head` option (see src/routes/__root.tsx), so this is a
+			fallback, not the source. It stays a literal because nothing here can
+			read a TypeScript module — `pnpm rename:scope` rewrites this line and
+			`shared/content/app.content.ts` together.
+		-->
 		<title>ui-app-template</title>
 
 		<!--

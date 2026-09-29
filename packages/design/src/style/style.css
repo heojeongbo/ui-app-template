@@ -71,3 +71,16 @@
  * right here. If a component needs a token that does NOT exist yet, add it to
  * light.css, dark.css and inline.css instead.
  */
+
+/*
+ * Korean breaks at the syllable by default, which is legal and reads badly:
+ * a word (어절) is split across lines mid-token. `keep-all` moves the break to
+ * the space between words, which is what Korean typography expects.
+ *
+ * Scoped to `:lang(ko)` on purpose. Japanese and Chinese have no inter-word
+ * spaces, so the same rule there prevents breaking ANYWHERE and the text
+ * overflows its container instead of wrapping.
+ */
+:lang(ko) {
+	word-break: keep-all;
+}
