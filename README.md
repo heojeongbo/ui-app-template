@@ -46,6 +46,7 @@ which optional pieces to keep.
 | **Theming** | One `theme.css` you own overrides every token for light and dark without touching the design package — plus runtime injection for a palette that arrives per tenant |
 | **Logging** | `@heojeongbo/log-palette` behind one module, with `console` banned by lint |
 | **Testing** | Vitest units, render-free scenario tests, router integration tests, and Playwright against the production bundle |
+| **i18n** | intlayer dictionaries for en-US and ko-KR, a locale store the transport reads, `<html lang>`/`dir`, and locale-aware dates and numbers — with `pnpm copy:check` refusing a string written outside one |
 | **Guardrails** | Biome, steiger (FSD boundaries), real git hooks, CI that also checks generated trees are current |
 
 ## Layout
@@ -68,6 +69,7 @@ docs/                  the conventions this template encodes
 | `pnpm check` | Biome — format + lint, with fixes |
 | `pnpm type:check` | `tsc --noEmit` in every package |
 | `pnpm fsd:check` | Steiger — FSD layer boundaries |
+| `pnpm copy:check` | No user-facing string outside a dictionary |
 | `pnpm scenario:check` | Every `S<n>` in a spec has a test, and vice versa |
 | `pnpm test` | Vitest — unit + scenario |
 | `pnpm test:scenario` | Scenario tests only |
@@ -93,10 +95,12 @@ together. By topic:
 - [ux/states](docs/ux/states.md) — the seven async states
 - [ux/forms](docs/ux/forms.md) — validation timing, field masks, unsaved-changes guards
 - [ux/copy](docs/ux/copy.md) — where strings live and how they read
+- [i18n](docs/i18n.md) — dictionaries, the locale store, `Accept-Language`
+- [l10n](docs/l10n.md) — dates, numbers, collation, direction, type
 - [design-system](docs/design-system.md) — tokens, shadcn, component discipline
 - [logging](docs/logging.md), [proto-and-transport](docs/proto-and-transport.md),
   [testing](docs/testing.md), [mocking](docs/mocking.md),
-  [env-and-runtime-config](docs/env-and-runtime-config.md), [i18n](docs/i18n.md)
+  [env-and-runtime-config](docs/env-and-runtime-config.md)
 
 `CLAUDE.md` and `AGENTS.md` are the short form, for humans in a hurry and for
 coding agents.

@@ -3,3 +3,4 @@
 pnpm type:check
 pnpm fsd:check
 pnpm scenario:check
+pnpm copy:check

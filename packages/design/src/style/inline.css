@@ -18,13 +18,15 @@
 
 	/* Set on the theme, not on `body`. A `body { font-family }` rule leaves the
 	   `font-sans` utility resolving to Tailwind's default stack — the two then
-	   disagree wherever the utility is used explicitly. */
-	--font-sans:
-		ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-		"Helvetica Neue", Arial, sans-serif;
-	--font-mono:
-		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-		monospace;
+	   disagree wherever the utility is used explicitly.
+
+	   Through `var()`, not as a literal stack, for the same reason the colours
+	   below are: `@theme inline` bakes whatever is written here into every
+	   utility that uses it, so a literal stack makes both a `theme.css`
+	   override and a per-language `:lang()` override silently dead. The values
+	   live in light.css beside `--radius`. */
+	--font-sans: var(--sans);
+	--font-mono: var(--mono);
 
 	/* --- shadcn's baseline contract -------------------------------------- */
 	/* A freshly installed primitive only renders correctly if every name below

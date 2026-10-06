@@ -212,6 +212,8 @@ of files.
 - [ux/states.md](ux/states.md) — the seven async states
 - [ux/forms.md](ux/forms.md) — validation timing, field masks, unsaved-changes guards
 - [ux/copy.md](ux/copy.md) — where strings live and how they read
+- [i18n.md](i18n.md) — dictionaries, the locale store, `Accept-Language`
+- [l10n.md](l10n.md) — dates, numbers, collation, direction, type
 - [design-system.md](design-system.md) — tokens, shadcn, component discipline
 - [logging.md](logging.md) — the logger and why it is wrapped
 - [proto-and-transport.md](proto-and-transport.md) — the data layer

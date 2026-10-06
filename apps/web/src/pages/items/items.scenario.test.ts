@@ -14,6 +14,8 @@ import { describe, expect, it } from "vitest";
 
 const { ItemStatus } = proto.example_v1;
 
+import { getIntlayer } from "intlayer";
+
 import {
 	applyPage,
 	applyPageSize,
@@ -154,5 +156,26 @@ describe("items screen", () => {
 	it("S7: an empty result reports an empty range", () => {
 		// 1–0 of 0 would be nonsense on screen.
 		expect(visibleRange(base, 0)).toEqual({ from: 0, to: 0 });
+	});
+});
+
+// Pinned, not current: this asserts the RULE (the name carries the row), and
+// the English spelling is what the e2e suite also pins.
+const itemsContent = getIntlayer("items", "en-US");
+
+describe("row action names", () => {
+	// The accessible name is built by ONE content entry, not by joining a label
+	// and a name in JSX. Asserting it here is what makes the e2e's dependency
+	// on that exact wording fail in 40ms instead of after a Playwright build —
+	// and what stops someone "tidying" the separator back into the markup,
+	// where no translation could reach it.
+	it("S9: an edit action names the row it acts on", () => {
+		expect(itemsContent.editItem({ name: "widget 4" })).toBe("Edit: widget 4");
+	});
+
+	it("S9: a delete action names the row it acts on", () => {
+		expect(itemsContent.deleteItem({ name: "widget 4" })).toBe(
+			"Delete: widget 4",
+		);
 	});
 });

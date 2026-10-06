@@ -12,6 +12,7 @@
  *   3. scaffold a wrapper -> src/ui/<name>/index.ts        (ours)
  *   4. refresh the barrel -> src/ui/index.ts
  *   5. format
+ *   6. report any copy the primitive ships
  *
  * Step 2 is what keeps "everything goes through our layer" from costing
  * boilerplate. The wrapper starts as a one-line re-export; to customise the
@@ -124,3 +125,45 @@ for (const name of components) {
 
 run("pnpm", ["exec", "tsx", path.join(dirname, "sync-ui-barrel.mts")]);
 run("pnpm", ["exec", "biome", "check", "--write", "src"]);
+
+reportPrimitiveCopy(components);
+
+/**
+ * Say so when a freshly installed primitive ships words a user reads.
+ *
+ * It PRINTS and never rewrites. A rewrite table keyed on upstream's exact
+ * strings would silently no-op the day upstream rewords `Close` to
+ * `Close dialog` — the string returns to production and the build stays green,
+ * which is the failure this whole discipline exists to remove. It would also
+ * stop `primitive/` being honestly CLI-owned: the diff after the next
+ * `ui:add` could no longer answer "what did upstream change".
+ *
+ * So the fix stays manual and the warning lands at the one moment the author
+ * is already looking at the component. `pnpm copy:check` is what stops it
+ * being forgotten: the same primitive becomes a hard error the moment anything
+ * outside `primitive/` imports its wrapper.
+ */
+function reportPrimitiveCopy(installed: string[]) {
+	// sr-only text, an aria-label, a title — the three shapes shadcn uses for
+	// the words it ships. Deliberately narrow: a false alarm here trains people
+	// to skim past the real one.
+	const COPY = /<span className="sr-only">|aria-label="|title="/;
+
+	for (const name of installed) {
+		const file = path.join(uiDir, "primitive", `${name}.tsx`);
+		if (!fs.existsSync(file)) continue;
+
+		const hits = fs
+			.readFileSync(file, "utf8")
+			.split("\n")
+			.filter((line) => COPY.test(line));
+
+		if (hits.length === 0) continue;
+
+		console.warn(
+			`\nprimitive/${name}.tsx ships ${hits.length} user-facing string(s).\n` +
+				`Wrap it in ui/${name}/ before anything uses it — see ui/dialog/dialog.tsx\n` +
+				"for the shape. packages/design ships no words its consumers read.",
+		);
+	}
+}

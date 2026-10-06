@@ -124,3 +124,24 @@ neither has any other way to tell you it has gone stale.
   30s is a hook people bypass with `--no-verify`.
 - **pre-push** — type-check and the FSD boundary check. Slow checks must not
   reach the remote, but they should not tax every commit either.
+
+## Locale and timezone are pinned, not inherited
+
+`e2e/playwright.config.ts` sets `locale: "en-US"` and
+`timezoneId: "Asia/Seoul"`; `apps/web/vite.config.ts` sets `TZ: "Asia/Seoul"`
+for Vitest. Unpinned, both are the machine's, so an English assertion passes in
+CI and fails on a Korean laptop — reading as a copy regression rather than as
+an unset default.
+
+**Seoul rather than UTC, deliberately.** UTC is the one zone in which a
+`toISOString()`-based date cell is correct, so pinning it would make the suite
+deterministic and the regression test meaningless. The fixtures are
+`2026-01-01T00:00:00Z` plus one hour per index, so some rows are Jan 1 in UTC
+and Jan 2 in Seoul — which is exactly the bug the date formatting replaced.
+
+**e2e keeps its English literals.** `e2e/tsconfig.json` is standalone on
+purpose and the suite has no dependency on `apps/web`; a spec that asserted
+`c.range({…})` would be asserting that the app agrees with itself, which is the
+one assertion that cannot fail. `e2e/tests/i18n.spec.ts` is where the Korean
+strings are, and it asserts the CHAIN — switch, `<html lang>`, reload — rather
+than the wording.

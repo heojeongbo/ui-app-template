@@ -1,6 +1,8 @@
 import type { Interceptor, Transport } from "@connectrpc/connect";
-import { createTransport } from "@template/core/api";
+import { acceptLanguageInterceptor, createTransport } from "@template/core/api";
 import { env, readRuntimeConfig } from "@template/core/config";
+
+import { localeStore } from "@/shared/lib/locale";
 
 import { resetClients } from "./client";
 
@@ -58,7 +60,18 @@ export function getTransport(): Transport {
 		baseUrl: readRuntimeConfig().config.apiBaseUrl ?? env.VITE_API_BASE_URL,
 		protocol: env.VITE_API_PROTOCOL,
 		onUnauthenticated: config.onUnauthenticated,
-		interceptors: config.interceptors ?? [],
+		interceptors: [
+			// FIRST, so the header is set even for an RPC a dev mock answers —
+			// `intercept()` does not call `next()` for the method it handles.
+			//
+			// A thunk rather than a captured value: this transport is built once,
+			// at module scope, and a locale read here would be the boot language
+			// for the life of the page. Reading the store per request is also why
+			// a language switch does NOT need `configureTransport()` again — which
+			// would orphan every in-flight request for no gain.
+			acceptLanguageInterceptor(() => localeStore.getState().locale),
+			...(config.interceptors ?? []),
+		],
 	});
 	return instance;
 }

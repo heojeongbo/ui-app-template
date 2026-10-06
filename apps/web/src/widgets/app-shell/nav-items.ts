@@ -8,12 +8,13 @@ import { linkOptions } from "@tanstack/react-router";
  * on the line that names it, instead of producing a link that compiles and
  * 404s.
  *
- * `id` is what the icon map and (later) the i18n dictionary key off. Keying by
- * array position instead is how a reordered nav ends up with the wrong labels.
+ * `id` is what the icon map AND the content record key off — the labels live in
+ * `app-shell.content.ts`, keyed by the same id. Keying by array position instead
+ * is how a reordered nav ends up with the wrong word on every item.
  */
 export const NAV_ITEMS = [
-	{ ...linkOptions({ to: "/" }), id: "home", label: "Home" },
-	{ ...linkOptions({ to: "/items" }), id: "items", label: "Items" },
+	{ ...linkOptions({ to: "/" }), id: "home" },
+	{ ...linkOptions({ to: "/items" }), id: "items" },
 ] as const;
 
 export type NavItemId = (typeof NAV_ITEMS)[number]["id"];

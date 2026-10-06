@@ -1,4 +1,3 @@
-export { itemsContent } from "./items.content";
 export { clearFilters, itemsListParams } from "./items.filters";
 export { ItemsPage } from "./items.page";
 export type { ItemsSearch } from "./items.search";

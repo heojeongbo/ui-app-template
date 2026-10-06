@@ -27,6 +27,23 @@ export function resetItemStore(): void {
 	store = buildItems();
 }
 
+/**
+ * Constructed once, at module scope: building a `Collator` per comparison
+ * inside a `some()` is the classic ECMA-402 cost, and this one runs per row.
+ */
+const NAME_EQ = new Intl.Collator(undefined, { sensitivity: "accent" });
+
+/**
+ * Case- and normalization-folded, for substring search.
+ *
+ * `Intl.Collator` compares whole strings and cannot do containment, so there
+ * is no `Intl` answer here. KNOWN LIMIT: `toLowerCase` is the invariant
+ * mapping, so Turkish dotted/dotless İ still misses. A real backend should do
+ * this in the database under a declared collation (Postgres ICU, `citext`,
+ * `unaccent`) rather than in application code.
+ */
+const fold = (value: string) => value.normalize("NFC").toLowerCase();
+
 function matches(
 	item: Item,
 	request: proto.example_v1.ListItemsRequest,
@@ -42,10 +59,10 @@ function matches(
 	}
 
 	if (request.query) {
-		const needle = request.query.toLowerCase();
+		const needle = fold(request.query);
 		return (
-			item.name.toLowerCase().includes(needle) ||
-			item.description.toLowerCase().includes(needle)
+			fold(item.name).includes(needle) ||
+			fold(item.description).includes(needle)
 		);
 	}
 
@@ -99,9 +116,17 @@ export const itemMocks: Interceptor[] = [
 			// `extractFieldErrors` parses back onto the form field. A generic
 			// failure here would leave the user guessing which of the fields to
 			// change.
-			if (
-				store.some((item) => item.name.toLowerCase() === name.toLowerCase())
-			) {
+			// `Intl.Collator`, not `toLowerCase() === toLowerCase()`. The naive
+			// form fails twice: "İ".toLowerCase() is "i" plus a combining dot,
+			// which does not equal "i"; and NFD Hangul from macOS or an IME
+			// (한 as U+1112 U+1161 U+11AB) is not `===` to its NFC form, so two
+			// names that look identical both get created. ICU collation is
+			// normalization-insensitive, which settles the second case for free.
+			//
+			// `sensitivity: "accent"` is case-insensitive and accent-SENSITIVE.
+			// "base" would collide "resume" with "résumé", which is too loose for
+			// a name-uniqueness check.
+			if (store.some((item) => NAME_EQ.compare(item.name, name) === 0)) {
 				throw new ConnectError(
 					`name: An item called "${name}" already exists.`,
 					Code.AlreadyExists,
@@ -110,9 +135,11 @@ export const itemMocks: Interceptor[] = [
 
 			const item = create(ItemSchema, {
 				id: `itm_${String(store.length + 1).padStart(4, "0")}`,
-				// Note the server NORMALISES: it trims. That is why the client seeds
-				// its cache from the response rather than from what it submitted.
-				name,
+				// Note the server NORMALISES: it trims, and it composes to NFC.
+				// That is why the client seeds its cache from the response rather
+				// than from what it submitted. Normalising on WRITE means every
+				// stored value is NFC and only the incoming query ever has to be.
+				name: name.normalize("NFC"),
 				description: request.description.trim(),
 				status: request.status || ItemStatus.DRAFT,
 				createdAt: timestampNow(),

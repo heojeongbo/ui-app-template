@@ -49,6 +49,12 @@ jobs:
         # reader skimming one file, so neither survives review reliably.
         run: pnpm scenario:check
 
+      - name: User-facing strings live in a content module
+        # A string inlined in JSX still renders, so the copy seam decays one
+        # component at a time with nothing failing. Same argument as fsd:check
+        # and scenario:check — and cheaper than vitest, so it runs first.
+        run: pnpm copy:check
+
       - name: Unit and scenario tests
         run: pnpm test
 

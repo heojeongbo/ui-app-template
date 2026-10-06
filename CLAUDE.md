@@ -34,10 +34,12 @@ pnpm ui:add <name>       # install (or upgrade) a shadcn component
 pnpm ui:remove <name>    # remove one — refuses if still imported
 pnpm new:screen <name>   # scaffold a screen that already follows the triad
 pnpm scenario:check      # spec ↔ scenario-test agreement
+pnpm copy:check          # no user-facing string outside a dictionary
 pnpm rename:scope @acme  # rebrand @template/* to your own scope
 ```
 
-Before pushing: `pnpm check && pnpm type:check && pnpm fsd:check && pnpm test`.
+Before pushing: `pnpm check && pnpm type:check && pnpm fsd:check &&
+pnpm scenario:check && pnpm copy:check && pnpm test`.
 The git hooks run the fast half on commit and the slow half on push.
 
 ## Non-obvious rules
@@ -52,7 +54,8 @@ example is `shared/api/transport.ts`: it needs to know how to sign out and what
 is mocked, both of which `app` owns, so it is built lazily and `app` calls
 `configureTransport()` at startup.
 
-**Named exports only.** No default exports.
+**Named exports only.** No default exports — except `*.content.ts`, where
+intlayer's CLI reads the default export and there is no named form.
 
 **Naming is kebab-case.** Screens are `<name>.page.tsx` / `<name>.content.ts` /
 `<name>.scenario.test.ts` in `pages/<name>/`.
@@ -89,8 +92,24 @@ navigation never fires the first. See [docs/ux/forms.md](docs/ux/forms.md).
 `@template/core/logger`; `@heojeongbo/log-palette` may only be imported inside
 that one module. See [docs/logging.md](docs/logging.md).
 
-**No copy in `packages/core` or `packages/design`.** A shared component takes a
-`<Name>Copy` prop. See [docs/ux/copy.md](docs/ux/copy.md).
+**No copy in `packages/core` or `packages/design`** — through their public
+API. A shared **component** takes its words as individual props typed by where
+each lands; a shared **function or schema factory** takes one `<Name>Copy`
+argument. `ui/primitive/` is upstream's source and carries upstream's words: a
+primitive that ships copy gets wrapped before it is used (`ui/dialog/dialog.tsx`).
+Enforced by `pnpm copy:check`, not by review. See
+[docs/ux/copy.md](docs/ux/copy.md).
+
+**Every user-facing string is an intlayer dictionary entry.** `*.content.ts`
+exports a `{ key, content }` dictionary; a component reads it with
+`useIntlayer("<key>")`, anything outside a render with
+`getIntlayer("<key>", locale)`. Interpolation is `insert()` with named
+placeholders, called with an object — content FUNCTIONS run at build time with
+no arguments and are not interpolators. See [docs/i18n.md](docs/i18n.md).
+
+**Dates and numbers go through `shared/lib/format`**, never `toISOString()` or
+raw `${n}`. A number reaches a dictionary already formatted, so the dictionary
+never has to know the locale twice. See [docs/l10n.md](docs/l10n.md).
 
 **Styling is Tailwind v4 + `cn()`.** A recurring per-page tweak is a new `cva`
 variant, not a `className` at the call site. `ui/primitive/` is CLI-owned and
@@ -104,7 +123,9 @@ build time goes through `injectThemeTokens()` instead.
 
 **An alias must appear in three places together** — package `exports`, tsconfig
 `paths`, Vite `resolve.alias`. A mismatch resolves in Vite and fails in `tsc`,
-so the dev server stays green while CI goes red.
+so the dev server stays green while CI goes red. `intlayer` is the exception:
+its plugin injects the Vite side and its codegen covers tsc, and a hand-written
+alias would match `intlayer/routing` by prefix.
 
 **A non-obvious choice carries a comment naming the failure it prevents.** Not
 what the code does — what goes wrong without it. Those comments are most of
@@ -165,6 +186,28 @@ real enums.
   `VITEST` is set.
 - TypeScript 7 removed `baseUrl`, and cosmiconfig's TS loader does not work
   with it (hence `steiger.config.js`, not `.ts`).
+- **TypeScript 7 ships no JS parser API** — `typescript` exports `version` and
+  `versionMajorMinor` and nothing else, so there is no `createSourceFile`.
+  That is why `check-copy.mjs` drives `biome search` rather than the compiler.
+- Biome's GritQL has `jsx_text()` but **no `jsx_attribute()`**, and a pattern
+  it does not understand matches every file instead of failing — a silent pass.
+  `--reporter=json` also omits match locations; parse the default output.
+- **Intlayer content functions run at build time with no arguments**, so a
+  `(name) => string` in a dictionary is a value frozen once, not an
+  interpolator. Use `insert()` with `{{named}}` placeholders.
+- The intlayer **Vite plugin stays on under Vitest** — `router.test.tsx`
+  renders the real route tree, so every screen calls `useIntlayer`. What goes
+  off is `content.watch`, or the watcher holds the test process open.
+- `.intlayer/` is gitignored and `tsc` runs no codegen, so `apps/web`'s
+  `pretype:check` builds it. Without that a cold clone type-checks red on keys
+  that are perfectly valid — and CI is always a cold clone.
+- Radix's `useDirection` reads `localDir || globalDir || "ltr"` and **never
+  reads `document.dir`**, so `<html dir>` alone leaves every popper LTR;
+  `DirectionProvider` has to be mounted. `sonner` is the opposite — it reads
+  the document, so its `dir` needs nothing.
+- `toISOString()` renders the **UTC** calendar day, so a date cell built from
+  it is a day early for anyone east of UTC. Pinning tests to UTC hides it;
+  `TZ`/`timezoneId` are `Asia/Seoul` for exactly that reason.
 
 ## Before you commit
 
@@ -173,5 +216,6 @@ real enums.
 3. `pnpm fsd:check` — layer boundaries
 4. `pnpm scenario:check` — every `S<n>` is covered, and nothing names a
    scenario that no longer exists
-5. `pnpm test` — unit + scenario
-6. If you touched `packages/design/src/ui/`: did you audit the consumers?
+5. `pnpm copy:check` — no user-facing string outside a dictionary
+6. `pnpm test` — unit + scenario
+7. If you touched `packages/design/src/ui/`: did you audit the consumers?

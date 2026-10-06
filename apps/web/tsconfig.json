@@ -13,5 +13,16 @@
 			"@template/interfaces": ["../../packages/interfaces/src/index.ts"]
 		}
 	},
-	"include": ["src", "vite.config.ts"]
+	// `.intlayer/types` carries the module augmentation that makes
+	// `useIntlayer("items")` a checked key rather than an unknown one. It is
+	// generated and gitignored, which is why `pretype:check` builds it first:
+	// without that, a fresh clone type-checks red on keys that are perfectly
+	// valid, and only on a machine that has never run the dev server.
+	"include": [
+		"src",
+		"vite.config.ts",
+		"intlayer.config.ts",
+		".intlayer/types/**/*.ts",
+		".intlayer/types/**/*.d.ts"
+	]
 }

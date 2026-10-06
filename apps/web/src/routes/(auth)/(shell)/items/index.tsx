@@ -1,4 +1,5 @@
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import { getIntlayer } from "intlayer";
 
 import { itemQueries } from "@/entities/item";
 import {
@@ -7,6 +8,7 @@ import {
 	itemsListParams,
 	itemsSearchSchema,
 } from "@/pages/items";
+import { currentLocale, documentTitle } from "@/shared/lib/locale";
 
 /**
  * The route file stays thin: path, guard, search, loader, component.
@@ -18,6 +20,12 @@ import {
  * this way keeps the FSD direction intact.
  */
 export const Route = createFileRoute("/(auth)/(shell)/items/")({
+	head: () => ({
+		meta: [
+			{ title: documentTitle(getIntlayer("items", currentLocale()).title) },
+		],
+	}),
+
 	validateSearch: itemsSearchSchema,
 
 	// Keeps `?page=1&pageSize=20&status=all` out of the URL. Without it every

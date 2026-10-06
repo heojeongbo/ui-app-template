@@ -8,6 +8,7 @@
 		"dev": "vite",
 		"build": "vite build && tsc --noEmit",
 		"preview": "vite preview",
+		"pretype:check": "intlayer build",
 		"type:check": "tsc --noEmit",
 		"lint": "biome lint",
 		"check": "biome check --write",
@@ -23,9 +24,11 @@
 		"@template/core": "workspace:*",
 		"@template/design": "workspace:*",
 		"@template/interfaces": "workspace:*",
+		"intlayer": "catalog:",
 		"lucide-react": "^1.47.0",
 		"react": "^19.3.0",
 		"react-dom": "^19.3.0",
+		"react-intlayer": "catalog:",
 		"sonner": "^2.0.8",
 		"zod": "^4.6.5",
 		"zustand": "^5.0.15"
@@ -45,6 +48,7 @@
 		"tailwindcss": "^4.3.3",
 		"typescript": "^7.0.2",
 		"vite": "^8.3.0",
+		"vite-intlayer": "catalog:",
 		"vitest": "^5.0.1"
 	}
 }

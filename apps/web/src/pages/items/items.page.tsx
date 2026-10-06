@@ -7,13 +7,13 @@ import { Dialog, DialogContent } from "@template/design/ui/dialog";
 import type { proto } from "@template/interfaces";
 import { BoxIcon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useIntlayer } from "react-intlayer";
 
 import { itemQueries, type StatusFilter } from "@/entities/item";
 import { ItemEditorDialog } from "@/features/item-editor";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PageHeader } from "@/shared/ui/page-header";
 
-import { itemsContent } from "./items.content";
 import { ItemsFilterBar } from "./items.filter-bar";
 import {
 	applyPage,
@@ -44,6 +44,8 @@ const log = createScopedLogger("App");
  * handlers, no arithmetic inline.
  */
 export function ItemsPage() {
+	const c = useIntlayer("items");
+	const common = useIntlayer("common");
 	const search = route.useSearch();
 	const navigate = route.useNavigate();
 
@@ -100,12 +102,12 @@ export function ItemsPage() {
 	return (
 		<div className="flex flex-col">
 			<PageHeader
-				title={itemsContent.title}
-				description={itemsContent.description}
+				title={c.title}
+				description={c.description}
 				actions={
 					<Button onClick={() => setEditing(null)}>
 						<PlusIcon aria-hidden="true" />
-						{itemsContent.create}
+						{c.create}
 					</Button>
 				}
 			/>
@@ -125,25 +127,19 @@ export function ItemsPage() {
 				{data.items.length === 0 ? (
 					<EmptyState
 						icon={BoxIcon}
-						title={
-							filtering
-								? itemsContent.emptyFilteredTitle
-								: itemsContent.emptyTitle
-						}
+						title={filtering ? c.emptyFilteredTitle : c.emptyTitle}
 						description={
-							filtering
-								? itemsContent.emptyFilteredDescription
-								: itemsContent.emptyDescription
+							filtering ? c.emptyFilteredDescription : c.emptyDescription
 						}
 						action={
 							filtering ? (
 								<Button variant="outline" onClick={() => update(clearFilters)}>
-									{itemsContent.clearFilters}
+									{c.clearFilters}
 								</Button>
 							) : (
 								<Button onClick={() => setEditing(null)}>
 									<PlusIcon aria-hidden="true" />
-									{itemsContent.create}
+									{c.create}
 								</Button>
 							)
 						}
@@ -210,14 +206,14 @@ export function ItemsPage() {
 								setEditing(undefined);
 							}}
 						>
-							<DialogContent>
+							<DialogContent closeLabel={common.close.value}>
 								<BoundaryFallback
 									size="card"
-									title={itemsContent.editorFailedTitle}
-									description={itemsContent.editorFailedDescription}
+									title={c.editorFailedTitle}
+									description={c.editorFailedDescription}
 									action={
 										<Button variant="outline" onClick={reset}>
-											{itemsContent.editorFailedRetry}
+											{common.retry}
 										</Button>
 									}
 								/>

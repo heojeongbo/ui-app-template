@@ -6,9 +6,10 @@ coverage/
 # Build info from `tsc -b` project references.
 *.tsbuildinfo
 
-# Intlayer's generated dictionary types. Produced by the vite plugin, never
-# committed — see docs/i18n.md for why a cold checkout runs `pnpm intlayer`
-# before `type:check`.
+# Intlayer's compiled dictionaries and the .d.ts augmentation that makes a
+# dictionary key checkable. Produced by the Vite plugin during dev/build and by
+# `intlayer build`, never committed — apps/web's `pretype:check` runs that build
+# so a cold checkout type-checks. See docs/i18n.md.
 .intlayer/
 
 # TanStack Router's plugin cache. `routeTree.gen.ts` itself IS committed.

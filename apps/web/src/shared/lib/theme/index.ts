@@ -1,2 +1,7 @@
-export type { Theme } from "./theme-store";
-export { prefersDark, useResolvedTheme, useThemeStore } from "./theme-store";
+export type { Theme, ToggleTarget } from "./theme-store";
+export {
+	nextTheme,
+	prefersDark,
+	useResolvedTheme,
+	useThemeStore,
+} from "./theme-store";

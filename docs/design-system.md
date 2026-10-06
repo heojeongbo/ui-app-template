@@ -228,8 +228,15 @@ contract.
    `tailwind-merge` makes a later class actually beat an earlier one in the same
    group. A plain template string gets the first half and not the second, which
    is why an appended `className` silently loses to the component's default.
-4. **No copy in this package.** A component that needs words takes a
-   `<Name>Copy` prop. See [ux/copy.md](ux/copy.md).
+4. **No copy in this package's public API.** A component takes its words as
+   individual props, typed by where each one lands; a function or hook takes
+   one `<Name>Copy` argument. `ui/primitive/` is upstream's source and carries
+   upstream's words — a primitive that ships copy gets a real wrapper before
+   anything uses it, and `ui/dialog/dialog.tsx` is the worked example:
+   `showCloseButton: boolean` becomes `closeLabel?: string`, so a caller
+   supplies the word or gets no button. `pnpm copy:check` warns while such a
+   primitive is unused and fails the build once it is imported.
+   See [ux/copy.md](ux/copy.md).
 5. **Keep `data-slot`.** It is upstream convention and is used for
    cross-component styling; losing it breaks selectors when a component is
    later replaced by the CLI.

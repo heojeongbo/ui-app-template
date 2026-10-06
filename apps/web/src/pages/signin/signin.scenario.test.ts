@@ -1,6 +1,16 @@
+import { getIntlayer } from "intlayer";
 import { describe, expect, it } from "vitest";
 
-import { signInContent } from "./signin.content";
+/**
+ * Read outside React, with the locale PINNED.
+ *
+ * Pinned rather than "current" so a Korean-only regression cannot flip an
+ * assertion that is about the rule, not about the language. Reading the real
+ * dictionary rather than a local fixture is what keeps the property this test
+ * was written for: it asserts against the same strings the UI shows.
+ */
+const signInContent = getIntlayer("signin", "en-US");
+
 import { signInSchema } from "./signin.schema";
 
 /**
